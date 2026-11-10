@@ -1,0 +1,79 @@
+{
+ "lisbon": [
+  {"title": "Belém and the riverside", "destinationIndex": 0, "estimates": {"stay": 140.0, "food": 55.0, "transport": 8.0},
+   "stops": [
+    {"id": "lis-jeronimos", "place": {"name": "Jerónimos Monastery", "address": "Praça do Império, Belém, Lisbon, Portugal", "location": {"lat": 38.6979, "lng": -9.2068}, "osmId": null, "source": "seed"}, "category": "sight", "slot": "morning", "reason": "Manueline masterpiece and the heart of Lisbon's age of discovery.", "durationMinutes": 90, "costEstimate": 24.0, "locked": true, "note": ""},
+    {"id": "lis-pasteis", "place": {"name": "Pastéis de Belém", "address": "Rua de Belém 84-92, Lisbon, Portugal", "location": {"lat": 38.6975, "lng": -9.2032}, "osmId": null, "source": "seed"}, "category": "food", "slot": "morning", "reason": "The original custard tarts, still baked to the 1837 recipe.", "durationMinutes": 30, "costEstimate": 8.0, "locked": false, "note": ""},
+    {"id": "lis-tower", "place": {"name": "Belém Tower", "address": "Avenida Brasília, Belém, Lisbon, Portugal", "location": {"lat": 38.6916, "lng": -9.216}, "osmId": null, "source": "seed"}, "category": "sight", "slot": "afternoon", "reason": "Walk round the 16th-century fort on the Tagus; outside is free.", "durationMinutes": 60, "costEstimate": 0.0, "locked": false, "note": ""},
+    {"id": "lis-maat", "place": {"name": "MAAT", "address": "Avenida Brasília, Belém, Lisbon, Portugal", "location": {"lat": 38.6957, "lng": -9.1949}, "osmId": null, "source": "seed"}, "category": "museum", "slot": "afternoon", "reason": "Art and architecture museum with a walkable roof over the river.", "durationMinutes": 75, "costEstimate": 22.0, "locked": false, "note": ""},
+    {"id": "lis-lx", "place": {"name": "LX Factory", "address": "Rua Rodrigues de Faria 103, Alcântara, Lisbon, Portugal", "location": {"lat": 38.7037, "lng": -9.1785}, "osmId": null, "source": "seed"}, "category": "food", "slot": "evening", "reason": "Old industrial complex turned into bookshops and restaurants.", "durationMinutes": 120, "costEstimate": 50.0, "locked": false, "note": ""}
+   ],
+   "rainPlan": [
+    {"id": "lis-coaches", "place": {"name": "National Coach Museum", "address": "Avenida da Índia 136, Belém, Lisbon, Portugal", "location": {"lat": 38.6969, "lng": -9.1985}, "osmId": null, "source": "seed"}, "category": "museum", "slot": "afternoon", "reason": "Royal carriages under one roof, steps from Belém's sights.", "durationMinutes": 75, "costEstimate": 16.0, "locked": false, "note": ""}
+   ]},
+  {"title": "Alfama, the castle and Baixa", "destinationIndex": 0, "estimates": {"stay": 140.0, "food": 50.0, "transport": 6.0},
+   "stops": [
+    {"id": "lis-castle", "place": {"name": "São Jorge Castle", "address": "Rua de Santa Cruz do Castelo, Lisbon, Portugal", "location": {"lat": 38.7139, "lng": -9.1335}, "osmId": null, "source": "seed"}, "category": "sight", "slot": "morning", "reason": "Moorish castle with the widest view over the old city.", "durationMinutes": 90, "costEstimate": 30.0, "locked": false, "note": ""},
+    {"id": "lis-luzia", "place": {"name": "Miradouro de Santa Luzia", "address": "Largo de Santa Luzia, Alfama, Lisbon, Portugal", "location": {"lat": 38.7118, "lng": -9.1301}, "osmId": null, "source": "seed"}, "category": "sight", "slot": "morning", "reason": "Tiled terrace over Alfama's rooftops and the river.", "durationMinutes": 30, "costEstimate": 0.0, "locked": false, "note": ""},
+    {"id": "lis-comercio", "place": {"name": "Praça do Comércio", "address": "Praça do Comércio, Baixa, Lisbon, Portugal", "location": {"lat": 38.7075, "lng": -9.1364}, "osmId": null, "source": "seed"}, "category": "sight", "slot": "afternoon", "reason": "The grand riverside square rebuilt after the 1755 earthquake.", "durationMinutes": 45, "costEstimate": 0.0, "locked": false, "note": ""},
+    {"id": "lis-timeout", "place": {"name": "Time Out Market", "address": "Avenida 24 de Julho 49, Cais do Sodré, Lisbon, Portugal", "location": {"lat": 38.7071, "lng": -9.1458}, "osmId": null, "source": "seed"}, "category": "food", "slot": "evening", "reason": "Many of the city's favourite kitchens in one market hall.", "durationMinutes": 90, "costEstimate": 45.0, "locked": false, "note": ""}
+   ],
+   "rainPlan": [
+    {"id": "lis-tiles", "place": {"name": "National Tile Museum", "address": "Rua da Madre de Deus 4, Lisbon, Portugal", "location": {"lat": 38.7247, "lng": -9.1135}, "osmId": null, "source": "seed"}, "category": "museum", "slot": "afternoon", "reason": "Five centuries of azulejos in a former convent.", "durationMinutes": 90, "costEstimate": 10.0, "locked": false, "note": ""}
+   ]},
+  {"title": "Chiado, Bairro Alto and gardens", "destinationIndex": 0, "estimates": {"stay": 140.0, "food": 60.0, "transport": 6.0},
+   "stops": [
+    {"id": "lis-carmo", "place": {"name": "Carmo Convent", "address": "Largo do Carmo, Chiado, Lisbon, Portugal", "location": {"lat": 38.712, "lng": -9.1405}, "osmId": null, "source": "seed"}, "category": "sight", "slot": "morning", "reason": "Roofless Gothic church left as a memorial to the earthquake.", "durationMinutes": 45, "costEstimate": 7.0, "locked": false, "note": ""},
+    {"id": "lis-alcantara", "place": {"name": "Miradouro de São Pedro de Alcântara", "address": "Rua de São Pedro de Alcântara, Bairro Alto, Lisbon, Portugal", "location": {"lat": 38.7155, "lng": -9.1442}, "osmId": null, "source": "seed"}, "category": "sight", "slot": "morning", "reason": "Garden viewpoint facing the castle across the valley.", "durationMinutes": 30, "costEstimate": 0.0, "locked": false, "note": ""},
+    {"id": "lis-principe", "place": {"name": "Jardim do Príncipe Real", "address": "Praça do Príncipe Real, Lisbon, Portugal", "location": {"lat": 38.7167, "lng": -9.1486}, "osmId": null, "source": "seed"}, "category": "nature", "slot": "afternoon", "reason": "Shady square with a giant cedar and neighbourhood cafés.", "durationMinutes": 45, "costEstimate": 0.0, "locked": false, "note": ""},
+    {"id": "lis-gulbenkian", "place": {"name": "Calouste Gulbenkian Museum", "address": "Avenida de Berna 45A, Lisbon, Portugal", "location": {"lat": 38.7372, "lng": -9.1546}, "osmId": null, "source": "seed"}, "category": "museum", "slot": "afternoon", "reason": "World-class collection in a calm modernist garden.", "durationMinutes": 120, "costEstimate": 15.0, "locked": false, "note": ""}
+   ],
+   "rainPlan": [
+    {"id": "lis-oceanario", "place": {"name": "Oceanário de Lisboa", "address": "Esplanada Dom Carlos I, Parque das Nações, Lisbon, Portugal", "location": {"lat": 38.7636, "lng": -9.0937}, "osmId": null, "source": "seed"}, "category": "activity", "slot": "afternoon", "reason": "One of Europe's largest aquariums, built around a single huge tank.", "durationMinutes": 150, "costEstimate": 50.0, "locked": false, "note": ""}
+   ]}
+ ],
+ "copenhagen": [
+  {"title": "Tivoli and the harbour", "destinationIndex": 0, "estimates": {"stay": 230.0, "food": 110.0, "transport": 24.0},
+   "stops": [
+    {"id": "cph-cityhall", "place": {"name": "Copenhagen City Hall", "address": "Rådhuspladsen 1, Copenhagen, Denmark", "location": {"lat": 55.6761, "lng": 12.5695}, "osmId": null, "source": "seed"}, "category": "sight", "slot": "morning", "reason": "Start at the main square; the tower has a great view.", "durationMinutes": 45, "costEstimate": 0.0, "locked": false, "note": ""},
+    {"id": "cph-nyhavn", "place": {"name": "Nyhavn", "address": "Nyhavn, Copenhagen, Denmark", "location": {"lat": 55.6798, "lng": 12.5907}, "osmId": null, "source": "seed"}, "category": "sight", "slot": "morning", "reason": "Colourful canal houses and old wooden ships.", "durationMinutes": 60, "costEstimate": 0.0, "locked": false, "note": ""},
+    {"id": "cph-tivoli", "place": {"name": "Tivoli Gardens", "address": "Vesterbrogade 3, Copenhagen, Denmark", "location": {"lat": 55.6737, "lng": 12.5681}, "osmId": null, "source": "seed"}, "category": "activity", "slot": "afternoon", "reason": "The 1843 amusement park: gentle rides, gardens and evening lights.", "durationMinutes": 240, "costEstimate": 160.0, "locked": true, "note": ""}
+   ],
+   "rainPlan": [
+    {"id": "cph-natmus", "place": {"name": "National Museum of Denmark", "address": "Ny Vestergade 10, Copenhagen, Denmark", "location": {"lat": 55.6748, "lng": 12.5748}, "osmId": null, "source": "seed"}, "category": "museum", "slot": "afternoon", "reason": "Free entry, a hands-on children's museum and Viking finds.", "durationMinutes": 120, "costEstimate": 0.0, "locked": false, "note": ""}
+   ]},
+  {"title": "Zoo and Frederiksberg", "destinationIndex": 0, "estimates": {"stay": 230.0, "food": 110.0, "transport": 24.0},
+   "stops": [
+    {"id": "cph-zoo", "place": {"name": "Copenhagen Zoo", "address": "Roskildevej 32, Frederiksberg, Denmark", "location": {"lat": 55.6726, "lng": 12.5213}, "osmId": null, "source": "seed"}, "category": "activity", "slot": "morning", "reason": "Elephant house by Norman Foster and a big children's zoo.", "durationMinutes": 210, "costEstimate": 110.0, "locked": false, "note": ""},
+    {"id": "cph-frbhave", "place": {"name": "Frederiksberg Gardens", "address": "Frederiksberg Runddel, Frederiksberg, Denmark", "location": {"lat": 55.6745, "lng": 12.526}, "osmId": null, "source": "seed"}, "category": "nature", "slot": "afternoon", "reason": "Romantic park next to the zoo, made for picnics.", "durationMinutes": 90, "costEstimate": 0.0, "locked": false, "note": ""}
+   ],
+   "rainPlan": []},
+  {"title": "Aquarium and the beach", "destinationIndex": 0, "estimates": {"stay": 230.0, "food": 110.0, "transport": 24.0},
+   "stops": [
+    {"id": "cph-blueplanet", "place": {"name": "The Blue Planet", "address": "Jacob Fortlingsvej 1, Kastrup, Denmark", "location": {"lat": 55.6383, "lng": 12.656}, "osmId": null, "source": "seed"}, "category": "activity", "slot": "morning", "reason": "Northern Europe's largest aquarium, shaped like a whirlpool.", "durationMinutes": 150, "costEstimate": 120.0, "locked": false, "note": ""},
+    {"id": "cph-amager", "place": {"name": "Amager Strandpark", "address": "Amager Strandvej, Copenhagen, Denmark", "location": {"lat": 55.656, "lng": 12.646}, "osmId": null, "source": "seed"}, "category": "nature", "slot": "afternoon", "reason": "Shallow lagoon beach, ideal for small children.", "durationMinutes": 150, "costEstimate": 0.0, "locked": false, "note": ""}
+   ],
+   "rainPlan": []},
+  {"title": "Castle, gardens and the food hall", "destinationIndex": 0, "estimates": {"stay": 230.0, "food": 110.0, "transport": 24.0},
+   "stops": [
+    {"id": "cph-rosenborg", "place": {"name": "Rosenborg Castle", "address": "Øster Voldgade 4A, Copenhagen, Denmark", "location": {"lat": 55.6858, "lng": 12.5773}, "osmId": null, "source": "seed"}, "category": "sight", "slot": "morning", "reason": "Renaissance castle holding the crown jewels.", "durationMinutes": 75, "costEstimate": 25.0, "locked": false, "note": ""},
+    {"id": "cph-kingsgarden", "place": {"name": "King's Garden", "address": "Kongens Have, Copenhagen, Denmark", "location": {"lat": 55.685, "lng": 12.58}, "osmId": null, "source": "seed"}, "category": "nature", "slot": "morning", "reason": "The city's oldest park, with a playground.", "durationMinutes": 45, "costEstimate": 0.0, "locked": false, "note": ""},
+    {"id": "cph-smk", "place": {"name": "SMK National Gallery of Denmark", "address": "Sølvgade 48-50, Copenhagen, Denmark", "location": {"lat": 55.6888, "lng": 12.5784}, "osmId": null, "source": "seed"}, "category": "museum", "slot": "afternoon", "reason": "Free collection and a children's art workshop.", "durationMinutes": 90, "costEstimate": 0.0, "locked": false, "note": ""},
+    {"id": "cph-torvehallerne", "place": {"name": "Torvehallerne", "address": "Frederiksborggade 21, Copenhagen, Denmark", "location": {"lat": 55.6838, "lng": 12.5694}, "osmId": null, "source": "seed"}, "category": "food", "slot": "evening", "reason": "Glass market halls with something for every eater.", "durationMinutes": 75, "costEstimate": 70.0, "locked": false, "note": ""}
+   ],
+   "rainPlan": []},
+  {"title": "The Little Mermaid and Kastellet", "destinationIndex": 0, "estimates": {"stay": 230.0, "food": 110.0, "transport": 24.0},
+   "stops": [
+    {"id": "cph-amalienborg", "place": {"name": "Amalienborg", "address": "Amalienborg Slotsplads, Copenhagen, Denmark", "location": {"lat": 55.684, "lng": 12.5931}, "osmId": null, "source": "seed"}, "category": "sight", "slot": "morning", "reason": "Watch the noon changing of the guard at the royal palace.", "durationMinutes": 45, "costEstimate": 0.0, "locked": false, "note": ""},
+    {"id": "cph-kastellet", "place": {"name": "Kastellet", "address": "Gl. Hovedvagt, Kastellet 1, Copenhagen, Denmark", "location": {"lat": 55.6908, "lng": 12.5947}, "osmId": null, "source": "seed"}, "category": "nature", "slot": "afternoon", "reason": "Star-shaped fortress with ramparts to run along.", "durationMinutes": 60, "costEstimate": 0.0, "locked": false, "note": ""},
+    {"id": "cph-mermaid", "place": {"name": "The Little Mermaid", "address": "Langelinie, Copenhagen, Denmark", "location": {"lat": 55.6929, "lng": 12.5993}, "osmId": null, "source": "seed"}, "category": "sight", "slot": "afternoon", "reason": "Edvard Eriksen's small bronze from the Andersen tale.", "durationMinutes": 30, "costEstimate": 0.0, "locked": false, "note": ""}
+   ],
+   "rainPlan": []},
+  {"title": "Science day and Bakken", "destinationIndex": 0, "estimates": {"stay": 230.0, "food": 110.0, "transport": 24.0},
+   "stops": [
+    {"id": "cph-experimentarium", "place": {"name": "Experimentarium", "address": "Tuborg Havnevej 7, Hellerup, Denmark", "location": {"lat": 55.7289, "lng": 12.577}, "osmId": null, "source": "seed"}, "category": "museum", "slot": "morning", "reason": "Hands-on science centre that children rarely want to leave.", "durationMinutes": 180, "costEstimate": 90.0, "locked": false, "note": ""},
+    {"id": "cph-bakken", "place": {"name": "Bakken", "address": "Dyrehavevej 62, Klampenborg, Denmark", "location": {"lat": 55.7745, "lng": 12.5776}, "osmId": null, "source": "seed"}, "category": "activity", "slot": "afternoon", "reason": "The world's oldest amusement park, inside a deer park.", "durationMinutes": 180, "costEstimate": 80.0, "locked": false, "note": ""}
+   ],
+   "rainPlan": []}
+ ]
+}

@@ -926,6 +926,8 @@ source = { editable = "." }
 dependencies = [
     { name = "fastapi" },
     { name = "firebase-admin" },
+    { name = "google-cloud-firestore" },
+    { name = "httpx" },
     { name = "pydantic-settings" },
     { name = "uvicorn", extra = ["standard"] },
 ]
@@ -942,6 +944,8 @@ dev = [
 requires-dist = [
     { name = "fastapi", specifier = ">=0.162.2" },
     { name = "firebase-admin", specifier = ">=7.7.0" },
+    { name = "google-cloud-firestore", specifier = ">=2.34.1" },
+    { name = "httpx", specifier = ">=0.28.1" },
     { name = "pydantic-settings", specifier = ">=2.16.2" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.54.0" },
 ]

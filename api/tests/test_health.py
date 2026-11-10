@@ -1,8 +1,7 @@
 from fastapi.testclient import TestClient
 
-from tests.conftest import FakeTokenVerifier
 from tripwise_api.config import Settings
-from tripwise_api.main import create_app
+from tripwise_api.main import Overrides, create_app
 from tripwise_api.schemas import HealthResponse
 
 
@@ -27,8 +26,8 @@ def test_docs_are_served_outside_production(client: TestClient) -> None:
     assert client.get("/api/docs").status_code == 200
 
 
-def test_docs_are_hidden_in_production(verifier: FakeTokenVerifier) -> None:
+def test_docs_are_hidden_in_production(overrides: Overrides) -> None:
     settings = Settings(environment="production", firebase_project_id="demo-tripwise")
-    with TestClient(create_app(settings, verifier)) as client:
+    with TestClient(create_app(settings, overrides)) as client:
         assert client.get("/api/docs").status_code == 404
         assert client.get("/api/openapi.json").status_code == 404

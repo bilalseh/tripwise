@@ -1,5 +1,618 @@
 {
   "$defs": {
+    "AiEditProposal": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "$ref": "#/$defs/EditAction"
+        },
+        "dayIndex": {
+          "type": "integer"
+        },
+        "day": {
+          "$ref": "#/$defs/Day"
+        },
+        "summary": {
+          "type": "string"
+        },
+        "report": {
+          "$ref": "#/$defs/GroundingReport"
+        }
+      },
+      "required": [
+        "action",
+        "dayIndex",
+        "day",
+        "summary",
+        "report"
+      ],
+      "title": "AiEditProposal",
+      "type": "object"
+    },
+    "AiEditRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "$ref": "#/$defs/EditAction"
+        },
+        "dayIndex": {
+          "exclusiveMaximum": 14,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "day": {
+          "$ref": "#/$defs/Day"
+        }
+      },
+      "required": [
+        "action",
+        "dayIndex",
+        "day"
+      ],
+      "title": "AiEditRequest",
+      "type": "object"
+    },
+    "BillingStatus": {
+      "additionalProperties": false,
+      "properties": {
+        "available": {
+          "description": "False when test-mode Stripe keys are not configured",
+          "type": "boolean"
+        },
+        "tier": {
+          "$ref": "#/$defs/Tier"
+        },
+        "priceCents": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "available",
+        "tier",
+        "priceCents"
+      ],
+      "title": "BillingStatus",
+      "type": "object"
+    },
+    "BudgetCategory": {
+      "enum": [
+        "stay",
+        "food",
+        "transport",
+        "activities"
+      ],
+      "title": "BudgetCategory",
+      "type": "string"
+    },
+    "BudgetLevel": {
+      "enum": [
+        "budget",
+        "moderate",
+        "luxury"
+      ],
+      "title": "BudgetLevel",
+      "type": "string"
+    },
+    "BudgetOverride": {
+      "additionalProperties": false,
+      "description": "The user's own number for one day and category, replacing the estimate.",
+      "properties": {
+        "day": {
+          "exclusiveMaximum": 14,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "category": {
+          "$ref": "#/$defs/BudgetCategory"
+        },
+        "amount": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "type": "number"
+        }
+      },
+      "required": [
+        "day",
+        "category",
+        "amount"
+      ],
+      "title": "BudgetOverride",
+      "type": "object"
+    },
+    "CheckoutSession": {
+      "additionalProperties": false,
+      "properties": {
+        "url": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "url"
+      ],
+      "title": "CheckoutSession",
+      "type": "object"
+    },
+    "ConfirmCheckoutRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "sessionId": {
+          "pattern": "^cs_test_[A-Za-z0-9]{1,200}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "sessionId"
+      ],
+      "title": "ConfirmCheckoutRequest",
+      "type": "object"
+    },
+    "Constraints": {
+      "additionalProperties": false,
+      "properties": {
+        "mobility": {
+          "$ref": "#/$defs/Mobility",
+          "default": "none"
+        },
+        "dietary": {
+          "items": {
+            "$ref": "#/$defs/Dietary"
+          },
+          "maxItems": 5,
+          "type": "array"
+        },
+        "mustSee": {
+          "items": {
+            "maxLength": 120,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 10,
+          "type": "array"
+        },
+        "notes": {
+          "default": "",
+          "maxLength": 500,
+          "type": "string"
+        }
+      },
+      "required": [
+        "mobility",
+        "dietary",
+        "mustSee",
+        "notes"
+      ],
+      "title": "Constraints",
+      "type": "object"
+    },
+    "CreateTripRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "title": {
+          "anyOf": [
+            {
+              "maxLength": 120,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "request": {
+          "$ref": "#/$defs/TripRequest"
+        }
+      },
+      "required": [
+        "title",
+        "request"
+      ],
+      "title": "CreateTripRequest",
+      "type": "object"
+    },
+    "Day": {
+      "additionalProperties": false,
+      "properties": {
+        "title": {
+          "default": "",
+          "maxLength": 120,
+          "type": "string"
+        },
+        "destinationIndex": {
+          "maximum": 2,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "stops": {
+          "items": {
+            "$ref": "#/$defs/Stop"
+          },
+          "maxItems": 12,
+          "type": "array"
+        },
+        "rainPlan": {
+          "items": {
+            "$ref": "#/$defs/Stop"
+          },
+          "maxItems": 6,
+          "type": "array"
+        },
+        "estimates": {
+          "$ref": "#/$defs/DayEstimates"
+        }
+      },
+      "required": [
+        "title",
+        "destinationIndex",
+        "stops",
+        "rainPlan",
+        "estimates"
+      ],
+      "title": "Day",
+      "type": "object"
+    },
+    "DayEstimates": {
+      "additionalProperties": false,
+      "description": "AI estimates per day for the whole party. Activities come from the stops.",
+      "properties": {
+        "stay": {
+          "default": 0,
+          "maximum": 1000000,
+          "minimum": 0,
+          "type": "number"
+        },
+        "food": {
+          "default": 0,
+          "maximum": 1000000,
+          "minimum": 0,
+          "type": "number"
+        },
+        "transport": {
+          "default": 0,
+          "maximum": 1000000,
+          "minimum": 0,
+          "type": "number"
+        }
+      },
+      "required": [
+        "stay",
+        "food",
+        "transport"
+      ],
+      "title": "DayEstimates",
+      "type": "object"
+    },
+    "Destination": {
+      "additionalProperties": false,
+      "description": "A destination the user picked from geocoder results, so its coordinates are real.",
+      "properties": {
+        "name": {
+          "maxLength": 120,
+          "minLength": 1,
+          "type": "string"
+        },
+        "displayName": {
+          "maxLength": 300,
+          "type": "string"
+        },
+        "country": {
+          "anyOf": [
+            {
+              "maxLength": 80,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "countryCode": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z]{2}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "location": {
+          "$ref": "#/$defs/GeoPoint"
+        },
+        "days": {
+          "maximum": 14,
+          "minimum": 1,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "name",
+        "displayName",
+        "country",
+        "countryCode",
+        "location",
+        "days"
+      ],
+      "title": "Destination",
+      "type": "object"
+    },
+    "DestinationWeather": {
+      "additionalProperties": false,
+      "properties": {
+        "destinationIndex": {
+          "type": "integer"
+        },
+        "days": {
+          "items": {
+            "$ref": "#/$defs/WeatherDay"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "destinationIndex",
+        "days"
+      ],
+      "title": "DestinationWeather",
+      "type": "object"
+    },
+    "Dietary": {
+      "enum": [
+        "vegetarian",
+        "vegan",
+        "halal",
+        "kosher",
+        "gluten_free"
+      ],
+      "title": "Dietary",
+      "type": "string"
+    },
+    "DocumentChecklist": {
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "items": {
+            "$ref": "#/$defs/DocumentItem"
+          },
+          "maxItems": 60,
+          "type": "array"
+        }
+      },
+      "required": [
+        "items"
+      ],
+      "title": "DocumentChecklist",
+      "type": "object"
+    },
+    "DocumentItem": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[A-Za-z0-9_-]{1,64}$",
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/$defs/DocumentKind"
+        },
+        "label": {
+          "maxLength": 120,
+          "minLength": 1,
+          "type": "string"
+        },
+        "done": {
+          "default": false,
+          "type": "boolean"
+        },
+        "dueDate": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "note": {
+          "default": "",
+          "maxLength": 500,
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "label",
+        "done",
+        "dueDate",
+        "note"
+      ],
+      "title": "DocumentItem",
+      "type": "object"
+    },
+    "DocumentKind": {
+      "enum": [
+        "passport",
+        "visa",
+        "insurance",
+        "tickets",
+        "bookings",
+        "driving",
+        "health",
+        "children",
+        "custom"
+      ],
+      "title": "DocumentKind",
+      "type": "string"
+    },
+    "DocumentsResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "checklist": {
+          "$ref": "#/$defs/DocumentChecklist"
+        },
+        "officialLinks": {
+          "items": {
+            "$ref": "#/$defs/OfficialLink"
+          },
+          "type": "array"
+        },
+        "passportValidUntil": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The passport should be valid at least until this date (common rule)"
+        }
+      },
+      "required": [
+        "checklist",
+        "officialLinks",
+        "passportValidUntil"
+      ],
+      "title": "DocumentsResponse",
+      "type": "object"
+    },
+    "DuplicateTripRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "title": {
+          "anyOf": [
+            {
+              "maxLength": 120,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "startDate": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "title",
+        "startDate"
+      ],
+      "title": "DuplicateTripRequest",
+      "type": "object"
+    },
+    "EditAction": {
+      "enum": [
+        "relaxed",
+        "rainy",
+        "local_food",
+        "cheaper"
+      ],
+      "title": "EditAction",
+      "type": "string"
+    },
+    "GenerateRequest": {
+      "additionalProperties": false,
+      "description": "Generate days [first_day, first_day + day_count). Long trips are generated in batches,\nso each request fits well inside the 60-second Hosting timeout.",
+      "properties": {
+        "firstDay": {
+          "exclusiveMaximum": 14,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "dayCount": {
+          "maximum": 4,
+          "minimum": 1,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "firstDay",
+        "dayCount"
+      ],
+      "title": "GenerateRequest",
+      "type": "object"
+    },
+    "GeoPoint": {
+      "additionalProperties": false,
+      "properties": {
+        "lat": {
+          "maximum": 90,
+          "minimum": -90,
+          "type": "number"
+        },
+        "lng": {
+          "maximum": 180,
+          "minimum": -180,
+          "type": "number"
+        }
+      },
+      "required": [
+        "lat",
+        "lng"
+      ],
+      "title": "GeoPoint",
+      "type": "object"
+    },
+    "GroundingReport": {
+      "additionalProperties": false,
+      "description": "What happened to the AI's suggestions on the way to the user.",
+      "properties": {
+        "provider": {
+          "type": "string"
+        },
+        "suggested": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "kept": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "dropped": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 60,
+          "type": "array"
+        },
+        "trimmed": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 60,
+          "type": "array"
+        }
+      },
+      "required": [
+        "provider",
+        "suggested",
+        "kept",
+        "dropped",
+        "trimmed"
+      ],
+      "title": "GroundingReport",
+      "type": "object"
+    },
     "HealthResponse": {
       "additionalProperties": false,
       "properties": {
@@ -17,8 +630,1061 @@
       ],
       "title": "HealthResponse",
       "type": "object"
+    },
+    "Interest": {
+      "enum": [
+        "food",
+        "history",
+        "art",
+        "nature",
+        "nightlife",
+        "shopping",
+        "relaxation",
+        "adventure"
+      ],
+      "title": "Interest",
+      "type": "string"
+    },
+    "Language": {
+      "enum": [
+        "en",
+        "ar"
+      ],
+      "title": "Language",
+      "type": "string"
+    },
+    "Mobility": {
+      "enum": [
+        "none",
+        "limited",
+        "wheelchair"
+      ],
+      "title": "Mobility",
+      "type": "string"
+    },
+    "OfficialLink": {
+      "additionalProperties": false,
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "label",
+        "url"
+      ],
+      "title": "OfficialLink",
+      "type": "object"
+    },
+    "Pace": {
+      "enum": [
+        "relaxed",
+        "balanced",
+        "packed"
+      ],
+      "title": "Pace",
+      "type": "string"
+    },
+    "PackingCategory": {
+      "enum": [
+        "documents",
+        "clothing",
+        "toiletries",
+        "health",
+        "electronics",
+        "kids",
+        "gear",
+        "other"
+      ],
+      "title": "PackingCategory",
+      "type": "string"
+    },
+    "PackingItem": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[A-Za-z0-9_-]{1,64}$",
+          "type": "string"
+        },
+        "label": {
+          "maxLength": 120,
+          "minLength": 1,
+          "type": "string"
+        },
+        "category": {
+          "$ref": "#/$defs/PackingCategory"
+        },
+        "quantity": {
+          "default": 1,
+          "maximum": 99,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "checked": {
+          "default": false,
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "category",
+        "quantity",
+        "checked"
+      ],
+      "title": "PackingItem",
+      "type": "object"
+    },
+    "PackingList": {
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "items": {
+            "$ref": "#/$defs/PackingItem"
+          },
+          "maxItems": 200,
+          "type": "array"
+        }
+      },
+      "required": [
+        "items"
+      ],
+      "title": "PackingList",
+      "type": "object"
+    },
+    "PackingTemplate": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[A-Za-z0-9_-]{1,64}$",
+          "type": "string"
+        },
+        "name": {
+          "maxLength": 120,
+          "minLength": 1,
+          "type": "string"
+        },
+        "items": {
+          "items": {
+            "$ref": "#/$defs/PackingItem"
+          },
+          "maxItems": 200,
+          "type": "array"
+        },
+        "createdAt": {
+          "format": "date-time",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "items",
+        "createdAt"
+      ],
+      "title": "PackingTemplate",
+      "type": "object"
+    },
+    "Party": {
+      "enum": [
+        "solo",
+        "couple",
+        "family",
+        "friends"
+      ],
+      "title": "Party",
+      "type": "string"
+    },
+    "Place": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "maxLength": 120,
+          "minLength": 1,
+          "type": "string"
+        },
+        "address": {
+          "maxLength": 300,
+          "type": "string"
+        },
+        "location": {
+          "$ref": "#/$defs/GeoPoint"
+        },
+        "osmId": {
+          "anyOf": [
+            {
+              "maxLength": 40,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "source": {
+          "$ref": "#/$defs/PlaceSource"
+        }
+      },
+      "required": [
+        "name",
+        "address",
+        "location",
+        "osmId",
+        "source"
+      ],
+      "title": "Place",
+      "type": "object"
+    },
+    "PlaceKind": {
+      "enum": [
+        "poi",
+        "area"
+      ],
+      "title": "PlaceKind",
+      "type": "string"
+    },
+    "PlaceResult": {
+      "additionalProperties": false,
+      "properties": {
+        "place": {
+          "$ref": "#/$defs/Place"
+        },
+        "kind": {
+          "$ref": "#/$defs/PlaceKind"
+        },
+        "country": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "countryCode": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "place",
+        "kind",
+        "country",
+        "countryCode"
+      ],
+      "title": "PlaceResult",
+      "type": "object"
+    },
+    "PlaceSearchResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "results": {
+          "items": {
+            "$ref": "#/$defs/PlaceResult"
+          },
+          "type": "array"
+        },
+        "attribution": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "results",
+        "attribution"
+      ],
+      "title": "PlaceSearchResponse",
+      "type": "object"
+    },
+    "PlaceSource": {
+      "description": "Where the coordinates and address came from. Never the AI.",
+      "enum": [
+        "nominatim",
+        "photon",
+        "seed",
+        "fake"
+      ],
+      "title": "PlaceSource",
+      "type": "string"
+    },
+    "Preferences": {
+      "additionalProperties": false,
+      "description": "Settings the user chooses. Language also sets the language the AI writes in.",
+      "properties": {
+        "language": {
+          "$ref": "#/$defs/Language",
+          "default": "en"
+        },
+        "homeCurrency": {
+          "default": "USD",
+          "pattern": "^[A-Z]{3}$",
+          "type": "string"
+        },
+        "units": {
+          "$ref": "#/$defs/Units",
+          "default": "metric"
+        }
+      },
+      "required": [
+        "language",
+        "homeCurrency",
+        "units"
+      ],
+      "title": "Preferences",
+      "type": "object"
+    },
+    "Profile": {
+      "additionalProperties": false,
+      "description": "The signed-in user's profile, stored at users/{uid}.",
+      "properties": {
+        "uid": {
+          "type": "string"
+        },
+        "displayName": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "email": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "isDemo": {
+          "type": "boolean"
+        },
+        "createdAt": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "tier": {
+          "$ref": "#/$defs/Tier",
+          "default": "free"
+        },
+        "preferences": {
+          "$ref": "#/$defs/Preferences"
+        }
+      },
+      "required": [
+        "uid",
+        "displayName",
+        "email",
+        "isDemo",
+        "createdAt",
+        "tier",
+        "preferences"
+      ],
+      "title": "Profile",
+      "type": "object"
+    },
+    "SaveTemplateRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "maxLength": 120,
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "SaveTemplateRequest",
+      "type": "object"
+    },
+    "SaveTripRequest": {
+      "additionalProperties": false,
+      "description": "The editable parts of a trip, saved together. `base_version` guards against overwriting\na newer save from another tab.",
+      "properties": {
+        "baseVersion": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "title": {
+          "maxLength": 120,
+          "minLength": 1,
+          "type": "string"
+        },
+        "days": {
+          "items": {
+            "$ref": "#/$defs/Day"
+          },
+          "maxItems": 14,
+          "type": "array"
+        },
+        "overrides": {
+          "items": {
+            "$ref": "#/$defs/BudgetOverride"
+          },
+          "maxItems": 200,
+          "type": "array"
+        }
+      },
+      "required": [
+        "baseVersion",
+        "title",
+        "days",
+        "overrides"
+      ],
+      "title": "SaveTripRequest",
+      "type": "object"
+    },
+    "ShareLink": {
+      "additionalProperties": false,
+      "properties": {
+        "token": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "token",
+        "path"
+      ],
+      "title": "ShareLink",
+      "type": "object"
+    },
+    "SharedTrip": {
+      "additionalProperties": false,
+      "description": "The read-only view behind a share link: the map and the itinerary, nothing private\n(no notes, budget overrides, packing list or documents).",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "destinations": {
+          "items": {
+            "$ref": "#/$defs/Destination"
+          },
+          "type": "array"
+        },
+        "startDate": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "travelers": {
+          "$ref": "#/$defs/Travelers"
+        },
+        "currency": {
+          "type": "string"
+        },
+        "days": {
+          "items": {
+            "$ref": "#/$defs/Day"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "title",
+        "destinations",
+        "startDate",
+        "travelers",
+        "currency",
+        "days"
+      ],
+      "title": "SharedTrip",
+      "type": "object"
+    },
+    "Slot": {
+      "enum": [
+        "morning",
+        "afternoon",
+        "evening"
+      ],
+      "title": "Slot",
+      "type": "string"
+    },
+    "Stop": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[A-Za-z0-9_-]{1,64}$",
+          "type": "string"
+        },
+        "place": {
+          "$ref": "#/$defs/Place"
+        },
+        "category": {
+          "$ref": "#/$defs/StopCategory"
+        },
+        "slot": {
+          "$ref": "#/$defs/Slot"
+        },
+        "reason": {
+          "default": "",
+          "maxLength": 500,
+          "type": "string"
+        },
+        "durationMinutes": {
+          "description": "Estimate",
+          "maximum": 600,
+          "minimum": 15,
+          "type": "integer"
+        },
+        "costEstimate": {
+          "description": "Estimate for the whole party, in trip currency",
+          "maximum": 1000000,
+          "minimum": 0,
+          "type": "number"
+        },
+        "locked": {
+          "default": false,
+          "type": "boolean"
+        },
+        "note": {
+          "default": "",
+          "maxLength": 500,
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "place",
+        "category",
+        "slot",
+        "reason",
+        "durationMinutes",
+        "costEstimate",
+        "locked",
+        "note"
+      ],
+      "title": "Stop",
+      "type": "object"
+    },
+    "StopCategory": {
+      "enum": [
+        "sight",
+        "museum",
+        "food",
+        "nature",
+        "nightlife",
+        "shopping",
+        "activity",
+        "relax"
+      ],
+      "title": "StopCategory",
+      "type": "string"
+    },
+    "Tier": {
+      "enum": [
+        "free",
+        "pro"
+      ],
+      "title": "Tier",
+      "type": "string"
+    },
+    "TravelLeg": {
+      "additionalProperties": false,
+      "properties": {
+        "minutes": {
+          "type": "integer"
+        },
+        "km": {
+          "type": "number"
+        },
+        "mode": {
+          "$ref": "#/$defs/TravelMode"
+        },
+        "source": {
+          "$ref": "#/$defs/TravelSource"
+        }
+      },
+      "required": [
+        "minutes",
+        "km",
+        "mode",
+        "source"
+      ],
+      "title": "TravelLeg",
+      "type": "object"
+    },
+    "TravelMode": {
+      "enum": [
+        "walk",
+        "drive"
+      ],
+      "title": "TravelMode",
+      "type": "string"
+    },
+    "TravelRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "points": {
+          "items": {
+            "$ref": "#/$defs/GeoPoint"
+          },
+          "maxItems": 13,
+          "minItems": 2,
+          "type": "array"
+        }
+      },
+      "required": [
+        "points"
+      ],
+      "title": "TravelRequest",
+      "type": "object"
+    },
+    "TravelResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "legs": {
+          "items": {
+            "$ref": "#/$defs/TravelLeg"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "legs"
+      ],
+      "title": "TravelResponse",
+      "type": "object"
+    },
+    "TravelSource": {
+      "enum": [
+        "osrm",
+        "estimate"
+      ],
+      "title": "TravelSource",
+      "type": "string"
+    },
+    "Travelers": {
+      "additionalProperties": false,
+      "properties": {
+        "party": {
+          "$ref": "#/$defs/Party"
+        },
+        "adults": {
+          "maximum": 12,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "children": {
+          "default": 0,
+          "maximum": 10,
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "party",
+        "adults",
+        "children"
+      ],
+      "title": "Travelers",
+      "type": "object"
+    },
+    "Trip": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[A-Za-z0-9_-]{1,64}$",
+          "type": "string"
+        },
+        "title": {
+          "maxLength": 120,
+          "minLength": 1,
+          "type": "string"
+        },
+        "request": {
+          "$ref": "#/$defs/TripRequest"
+        },
+        "status": {
+          "$ref": "#/$defs/TripStatus"
+        },
+        "days": {
+          "items": {
+            "$ref": "#/$defs/Day"
+          },
+          "maxItems": 14,
+          "type": "array"
+        },
+        "overrides": {
+          "items": {
+            "$ref": "#/$defs/BudgetOverride"
+          },
+          "maxItems": 200,
+          "type": "array"
+        },
+        "version": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "createdAt": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "updatedAt": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "shareToken": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9_-]{1,64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "report": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/GroundingReport"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "request",
+        "status",
+        "days",
+        "overrides",
+        "version",
+        "createdAt",
+        "updatedAt",
+        "shareToken",
+        "report"
+      ],
+      "title": "Trip",
+      "type": "object"
+    },
+    "TripRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "destinations": {
+          "items": {
+            "$ref": "#/$defs/Destination"
+          },
+          "maxItems": 3,
+          "minItems": 1,
+          "type": "array"
+        },
+        "startDate": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "travelers": {
+          "$ref": "#/$defs/Travelers"
+        },
+        "budgetLevel": {
+          "$ref": "#/$defs/BudgetLevel"
+        },
+        "budgetAmount": {
+          "anyOf": [
+            {
+              "maximum": 1000000,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Total for the whole trip"
+        },
+        "currency": {
+          "pattern": "^[A-Z]{3}$",
+          "type": "string"
+        },
+        "interests": {
+          "items": {
+            "$ref": "#/$defs/Interest"
+          },
+          "maxItems": 8,
+          "minItems": 1,
+          "type": "array"
+        },
+        "pace": {
+          "$ref": "#/$defs/Pace"
+        },
+        "constraints": {
+          "$ref": "#/$defs/Constraints"
+        }
+      },
+      "required": [
+        "destinations",
+        "startDate",
+        "travelers",
+        "budgetLevel",
+        "budgetAmount",
+        "currency",
+        "interests",
+        "pace",
+        "constraints"
+      ],
+      "title": "TripRequest",
+      "type": "object"
+    },
+    "TripStatus": {
+      "enum": [
+        "draft",
+        "ready"
+      ],
+      "title": "TripStatus",
+      "type": "string"
+    },
+    "TripSummary": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[A-Za-z0-9_-]{1,64}$",
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "destinations": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "startDate": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "totalDays": {
+          "type": "integer"
+        },
+        "status": {
+          "$ref": "#/$defs/TripStatus"
+        },
+        "stops": {
+          "type": "integer"
+        },
+        "updatedAt": {
+          "format": "date-time",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "destinations",
+        "startDate",
+        "totalDays",
+        "status",
+        "stops",
+        "updatedAt"
+      ],
+      "title": "TripSummary",
+      "type": "object"
+    },
+    "Units": {
+      "enum": [
+        "metric",
+        "imperial"
+      ],
+      "title": "Units",
+      "type": "string"
+    },
+    "Usage": {
+      "additionalProperties": false,
+      "description": "Today's AI requests and the trips allowed on the user's plan.",
+      "properties": {
+        "aiUsed": {
+          "type": "integer"
+        },
+        "aiLimit": {
+          "type": "integer"
+        },
+        "resetsAt": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "tier": {
+          "$ref": "#/$defs/Tier"
+        },
+        "trips": {
+          "type": "integer"
+        },
+        "tripLimit": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Trips allowed on this plan; null is unlimited"
+        }
+      },
+      "required": [
+        "aiUsed",
+        "aiLimit",
+        "resetsAt",
+        "tier",
+        "trips",
+        "tripLimit"
+      ],
+      "title": "Usage",
+      "type": "object"
+    },
+    "WeatherDay": {
+      "additionalProperties": false,
+      "properties": {
+        "date": {
+          "format": "date",
+          "type": "string"
+        },
+        "tempMax": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "tempMin": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "precipitation": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Probability (%) or amount (mm), see kind"
+        },
+        "code": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "date",
+        "tempMax",
+        "tempMin",
+        "precipitation",
+        "code"
+      ],
+      "title": "WeatherDay",
+      "type": "object"
+    },
+    "WeatherKind": {
+      "enum": [
+        "forecast",
+        "typical",
+        "unavailable"
+      ],
+      "title": "WeatherKind",
+      "type": "string"
+    },
+    "WeatherReport": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "$ref": "#/$defs/WeatherKind"
+        },
+        "destinations": {
+          "items": {
+            "$ref": "#/$defs/DestinationWeather"
+          },
+          "type": "array"
+        },
+        "attribution": {
+          "default": "Weather data by Open-Meteo.com",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "destinations",
+        "attribution"
+      ],
+      "title": "WeatherReport",
+      "type": "object"
     }
   },
   "title": "TripwiseApi",
-  "x-request-models": []
+  "x-request-models": [
+    "TripRequest",
+    "CreateTripRequest",
+    "SaveTripRequest",
+    "GenerateRequest",
+    "DuplicateTripRequest",
+    "AiEditRequest",
+    "TravelRequest",
+    "Preferences",
+    "PackingList",
+    "DocumentChecklist",
+    "SaveTemplateRequest",
+    "ConfirmCheckoutRequest"
+  ]
 }

@@ -1,0 +1,213 @@
+"""Geocoders: Photon and Nominatim (both OpenStreetMap data), a cache, a fallback chain, and a
+deterministic fake for tests and local development.
+
+Usage policies respected here: an identifying User-Agent, results cached for 30 days, search
+only on submit (never autocomplete), Nominatim spaced to one request per second app-wide.
+"""
+
+import logging
+from collections.abc import Sequence
+from datetime import timedelta
+from typing import Any, Protocol
+
+import httpx
+
+from tripwise_api.integrations.cache import Cache, cache_key
+from tripwise_api.integrations.throttle import Throttle
+from tripwise_api.schemas.places import PlaceKind, PlaceResult
+from tripwise_api.schemas.trip import Place, PlaceSource
+from tripwise_api.schemas.trip_request import GeoPoint
+
+logger = logging.getLogger(__name__)
+
+USER_AGENT = "Tripwise/0.1 (+https://tripwise-plan.web.app; portfolio trip planner)"
+CACHE_TTL = timedelta(days=30)
+ATTRIBUTION = "Search by OpenStreetMap data (Photon, Nominatim). © OpenStreetMap contributors"
+
+# Result types that name an area rather than a specific place.
+AREA_TYPES = frozenset(
+    [
+        "city",
+        "town",
+        "village",
+        "hamlet",
+        "municipality",
+        "county",
+        "state",
+        "province",
+        "region",
+        "country",
+        "district",
+        "borough",
+        "suburb",
+        "quarter",
+        "neighbourhood",
+        "island",
+        "administrative",
+        "locality",
+        "postcode",
+    ]
+)
+
+
+class GeocodingError(Exception):
+    """The geocoder could not be reached or refused the request."""
+
+
+class Geocoder(Protocol):
+    name: str
+
+    async def search(
+        self, query: str, near: GeoPoint | None, limit: int, language: str
+    ) -> list[PlaceResult]: ...
+
+
+def _kind(*types: str | None) -> PlaceKind:
+    return PlaceKind.AREA if any(t in AREA_TYPES for t in types if t) else PlaceKind.POI
+
+
+async def _get_json(http: httpx.AsyncClient, url: str, params: dict[str, Any]) -> Any:
+    try:
+        response = await http.get(url, params=params, headers={"User-Agent": USER_AGENT})
+    except httpx.HTTPError as error:
+        raise GeocodingError(type(error).__name__) from error
+    if response.is_error:
+        raise GeocodingError(f"HTTP {response.status_code}")
+    return response.json()
+
+
+class PhotonGeocoder:
+    """komoot's public Photon instance: designed for search, with a location bias."""
+
+    name = "photon"
+    URL = "https://photon.komoot.io/api/"
+    LANGUAGES = frozenset({"en", "de", "fr"})
+
+    def __init__(self, http: httpx.AsyncClient, throttle: Throttle) -> None:
+        self._http = http
+        self._throttle = throttle
+
+    async def search(
+        self, query: str, near: GeoPoint | None, limit: int, language: str
+    ) -> list[PlaceResult]:
+        params: dict[str, Any] = {"q": query, "limit": limit}
+        if language in self.LANGUAGES:
+            params["lang"] = language
+        if near:
+            params |= {"lat": near.lat, "lon": near.lng, "location_bias_scale": 0.4}
+        async with self._throttle.slot():
+            data = await _get_json(self._http, self.URL, params)
+        return [r for r in (self._parse(f) for f in data.get("features", [])) if r]
+
+    @staticmethod
+    def _parse(feature: dict[str, Any]) -> PlaceResult | None:
+        props = feature.get("properties") or {}
+        coords = (feature.get("geometry") or {}).get("coordinates") or []
+        name = props.get("name")
+        if not name or len(coords) != 2:
+            return None
+        street = " ".join(p for p in (props.get("housenumber"), props.get("street")) if p)
+        parts = [street, props.get("district"), props.get("city"), props.get("country")]
+        address = ", ".join(dict.fromkeys(p for p in parts if p and p != name)) or name
+        osm = f"{str(props.get('osm_type', ''))[:1]}{props.get('osm_id', '')}" or None
+        return PlaceResult(
+            place=Place(
+                name=str(name)[:120],
+                address=address[:300],
+                location=GeoPoint(lat=coords[1], lng=coords[0]),
+                osm_id=osm,
+                source=PlaceSource.PHOTON,
+            ),
+            kind=_kind(props.get("type"), props.get("osm_value")),
+            country=props.get("country"),
+            country_code=str(props.get("countrycode", "")).lower() or None,
+        )
+
+
+class NominatimGeocoder:
+    name = "nominatim"
+    URL = "https://nominatim.openstreetmap.org/search"
+
+    def __init__(self, http: httpx.AsyncClient, throttle: Throttle) -> None:
+        self._http = http
+        self._throttle = throttle
+
+    async def search(
+        self, query: str, near: GeoPoint | None, limit: int, language: str
+    ) -> list[PlaceResult]:
+        params: dict[str, Any] = {
+            "q": query,
+            "format": "jsonv2",
+            "limit": limit,
+            "addressdetails": 1,
+            "accept-language": language,
+        }
+        if near:
+            box = (near.lng - 0.4, near.lat + 0.3, near.lng + 0.4, near.lat - 0.3)
+            params["viewbox"] = ",".join(f"{v:.4f}" for v in box)
+        async with self._throttle.slot():
+            data = await _get_json(self._http, self.URL, params)
+        return [r for r in (self._parse(item) for item in data if isinstance(item, dict)) if r]
+
+    @staticmethod
+    def _parse(item: dict[str, Any]) -> PlaceResult | None:
+        try:
+            location = GeoPoint(lat=float(item["lat"]), lng=float(item["lon"]))
+        except (KeyError, TypeError, ValueError):
+            return None
+        display = str(item.get("display_name", ""))
+        name = item.get("name") or display.split(",")[0]
+        if not name:
+            return None
+        address = item.get("address") or {}
+        return PlaceResult(
+            place=Place(
+                name=str(name)[:120],
+                address=display[:300],
+                location=location,
+                osm_id=f"{str(item.get('osm_type', ''))[:1].upper()}{item.get('osm_id', '')}",
+                source=PlaceSource.NOMINATIM,
+            ),
+            kind=_kind(item.get("addresstype"), item.get("type")),
+            country=address.get("country"),
+            country_code=address.get("country_code"),
+        )
+
+
+class CachedGeocoder:
+    def __init__(self, inner: Geocoder, cache: Cache) -> None:
+        self._inner = inner
+        self._cache = cache
+        self.name = inner.name
+
+    async def search(
+        self, query: str, near: GeoPoint | None, limit: int, language: str
+    ) -> list[PlaceResult]:
+        bias = (round(near.lat, 2), round(near.lng, 2)) if near else None
+        key = cache_key(self.name, query.strip().lower(), bias, limit, language)
+        cached = await self._cache.get("geocode", key)
+        if isinstance(cached, list):
+            return [PlaceResult.model_validate(item) for item in cached]
+        results = await self._inner.search(query, near, limit, language)
+        await self._cache.set(
+            "geocode", key, [r.model_dump(mode="json") for r in results], CACHE_TTL
+        )
+        return results
+
+
+class FallbackGeocoder:
+    """Tries each geocoder in turn until one answers (an empty answer counts as an answer)."""
+
+    def __init__(self, geocoders: Sequence[Geocoder]) -> None:
+        self._geocoders = list(geocoders)
+        self.name = "+".join(g.name for g in self._geocoders)
+
+    async def search(
+        self, query: str, near: GeoPoint | None, limit: int, language: str
+    ) -> list[PlaceResult]:
+        for geocoder in self._geocoders:
+            try:
+                return await geocoder.search(query, near, limit, language)
+            except GeocodingError as error:
+                logger.warning("geocoder %s failed: %s", geocoder.name, error)
+        raise GeocodingError("every geocoder failed")

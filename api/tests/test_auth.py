@@ -8,15 +8,14 @@ from collections.abc import Iterator
 import pytest
 from fastapi.testclient import TestClient
 
-from tests.conftest import FakeTokenVerifier
 from tripwise_api.auth import CurrentUser, user_from_claims
 from tripwise_api.config import Settings
-from tripwise_api.main import create_app
+from tripwise_api.main import Overrides, create_app
 
 
 @pytest.fixture
-def auth_client(settings: Settings, verifier: FakeTokenVerifier) -> Iterator[TestClient]:
-    app = create_app(settings, verifier)
+def auth_client(settings: Settings, overrides: Overrides) -> Iterator[TestClient]:
+    app = create_app(settings, overrides)
 
     @app.get("/api/_whoami")
     def whoami(user: CurrentUser) -> dict[str, object]:
