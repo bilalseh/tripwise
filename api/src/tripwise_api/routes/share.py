@@ -42,7 +42,8 @@ async def revoke_share(trip_id: str, user: CurrentUser, repository: RepositoryDe
 @router.get("/shared/{token}")
 async def get_shared_trip(token: str, repository: RepositoryDep, response: Response) -> SharedTrip:
     """Public: no sign-in needed. Unknown and revoked tokens look the same (404)."""
-    response.headers["Cache-Control"] = "private, max-age=60"
+    # Never cached: revoking a link must take effect at once.
+    response.headers["Cache-Control"] = "no-store"
     response.headers["X-Robots-Tag"] = "noindex"
     owner = await repository.resolve_share(token) if 16 <= len(token) <= 64 else None
     trip = await repository.get_trip(*owner) if owner else None

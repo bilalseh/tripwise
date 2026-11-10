@@ -1,5 +1,6 @@
 """Lay grounded stops out over days: cluster by area, order to minimise walking, trim to pace."""
 
+import math
 from collections.abc import Sequence
 from dataclasses import dataclass
 
@@ -28,7 +29,9 @@ def regroup(drafts: Sequence[DraftDay], pace: Pace) -> list[list[Stop]]:
     origin = {stop.id: index for index, d in enumerate(drafts) for stop in d.stops}
     items = [Located(stop.id, stop.place.location) for d in drafts for stop in d.stops]
     pinned = {stop.id: origin[stop.id] for d in drafts for stop in d.stops if stop.locked}
-    assignment = assign_days(items, len(drafts), PACE_LIMITS[pace].max_stops, pinned)
+    # Keep days balanced: at most one stop more than an even share, never above the pace.
+    even = math.ceil(len(items) / len(drafts)) + 1
+    assignment = assign_days(items, len(drafts), min(even, PACE_LIMITS[pace].max_stops), pinned)
 
     groups: list[list[Stop]] = [[] for _ in drafts]
     for d in drafts:

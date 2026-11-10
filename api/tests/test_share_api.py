@@ -22,6 +22,7 @@ def test_shared_trip_is_public_and_read_only(client: TestClient) -> None:
     assert len(body["days"]) == 3
     assert set(body) == {"title", "destinations", "startDate", "travelers", "currency", "days"}
     assert shared.headers["X-Robots-Tag"] == "noindex"
+    assert shared.headers["Cache-Control"] == "no-store"
     assert client.put("/api/trips/demo-lisbon", json={}).status_code == 401
 
 
