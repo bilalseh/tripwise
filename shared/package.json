@@ -1,0 +1,23 @@
+{
+  "name": "@tripwise/shared",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "gen": "node scripts/generate-types.mjs",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "json-schema-to-typescript": "^16.0.0",
+    "json-schema-to-zod": "^2.8.1",
+    "typescript": "~6.0.3",
+    "vitest": "^5.1.0"
+  }
+}

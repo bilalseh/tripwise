@@ -1,0 +1,24 @@
+{
+  "$defs": {
+    "HealthResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "const": "ok",
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "status",
+        "version"
+      ],
+      "title": "HealthResponse",
+      "type": "object"
+    }
+  },
+  "title": "TripwiseApi",
+  "x-request-models": []
+}
