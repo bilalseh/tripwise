@@ -302,11 +302,7 @@ async def test_wikidata_finds_landmarks_with_coordinates_and_aliases() -> None:
 
     monument, parish = results
     assert monument.place.source is PlaceSource.WIKIDATA
-    assert (
-        monument.kind is PlaceKind.POI
-    )
-    assert (
-        monument.also_known_as == "Monument to the Discoveries"
-    )
+    assert monument.kind is PlaceKind.POI
+    assert monument.also_known_as == "Monument to the Discoveries"
     assert monument.place.address == "Monument in Lisbon, Portugal"
     assert parish.kind is PlaceKind.AREA
