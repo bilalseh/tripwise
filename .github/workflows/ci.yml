@@ -51,7 +51,7 @@ jobs:
       - name: Container answers on /api/health
         run: |
           docker run -d --name api -p 8080:8080 \
-            -e FIREBASE_PROJECT_ID=demo-tripwise -e APP_VERSION=ci tripwise-api:ci
+            -e FIREBASE_PROJECT_ID=demo-tripwise -e APP_VERSION=ci \n            -e FIRESTORE_EMULATOR_HOST=127.0.0.1:8180 -e PLACES_PROVIDER=fake -e AI_PROVIDERS=fake \n            tripwise-api:ci
           for _ in $(seq 1 20); do
             if curl -fsS http://127.0.0.1:8080/api/health; then exit 0; fi
             sleep 1
