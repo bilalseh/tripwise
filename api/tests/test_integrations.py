@@ -8,10 +8,9 @@ import pytest
 
 from tests.fakes import MemoryOnlyCache
 from tripwise_api.integrations.cache import MemoryCache
+from tripwise_api.integrations.geocoder_wrappers import CachedGeocoder, FallbackGeocoder
 from tripwise_api.integrations.geocoding import (
     USER_AGENT,
-    CachedGeocoder,
-    FallbackGeocoder,
     GeocodingError,
     NominatimGeocoder,
     PhotonGeocoder,
@@ -306,3 +305,48 @@ async def test_wikidata_finds_landmarks_with_coordinates_and_aliases() -> None:
     assert monument.also_known_as == "Monument to the Discoveries"
     assert monument.place.address == "Monument in Lisbon, Portugal"
     assert parish.kind is PlaceKind.AREA
+
+
+async def test_transit_features_are_not_places() -> None:
+    feature = {
+        "geometry": {"coordinates": [35.5, 33.85]},
+        "properties": {
+            "name": "Bus to Martyrs Square",
+            "osm_key": "highway",
+            "osm_value": "bus_stop",
+        },
+    }
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json={"features": [feature]})
+
+    async with http_with(handler) as http:
+        assert (
+            await PhotonGeocoder(http, free_throttle()).search("Martyrs Square", None, 5, "en")
+            == []
+        )
+
+
+async def test_a_failing_geocoder_rests_instead_of_slowing_every_search() -> None:
+    calls = {"down": 0}
+
+    def down(request: httpx.Request) -> httpx.Response:
+        calls["down"] += 1
+        return httpx.Response(503)
+
+    def up(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json=PHOTON)
+
+    now = [0.0]
+    async with http_with(down) as bad, http_with(up) as good:
+        chain = FallbackGeocoder(
+            [PhotonGeocoder(bad, free_throttle()), NominatimGeocoder(good, free_throttle())],
+            rest_seconds=30,
+            clock=lambda: now[0],
+        )
+        for _ in range(3):
+            await chain.search("x", None, 5, "en")
+        assert calls["down"] == 1
+        now[0] = 31
+        await chain.search("x", None, 5, "en")
+        assert calls["down"] == 2

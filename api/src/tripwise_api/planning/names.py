@@ -142,6 +142,8 @@ STOPWORDS = frozenset(
 # Hyphen, en dash (U+2013), colon or bar between spaces.
 _SUBTITLE = re.compile(r"\s+[-\u2013:|]\s+")
 _PARENS = re.compile(r"\s*\([^)]*\)")
+# Hyphen look-alikes (non-breaking hyphen, minus sign...) that hurt search.
+_ODD_HYPHENS = re.compile("[\u2010\u2011\u2012\u2212]")
 
 
 def normalise(text: str) -> str:
@@ -170,6 +172,7 @@ def distinctive(text: str) -> set[str]:
 def name_variants(name: str) -> list[str]:
     """The name as given, then simpler forms: without parentheses, and each side of a
     subtitle separator ("MAAT - Museum of ..." gives "MAAT" and "Museum of ...")."""
+    name = _ODD_HYPHENS.sub("-", name)
     variants = [name.strip()]
     bare = _PARENS.sub("", name).strip()
     variants.append(bare)
@@ -206,3 +209,11 @@ def names_match(wanted: str, found: str) -> bool:
     if a in b or b in a:
         return True
     return bool(key & tokens(found))
+
+
+def similarity(a: str, b: str) -> float:
+    """Share of words in common (Jaccard), 0 to 1, for ranking acceptable matches."""
+    left, right = tokens(a), tokens(b)
+    if not left or not right:
+        return 0.0
+    return len(left & right) / len(left | right)

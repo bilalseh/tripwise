@@ -6,14 +6,11 @@ only on submit (never autocomplete), Nominatim spaced to one request per second 
 """
 
 import logging
-from collections.abc import Sequence
-from datetime import timedelta
 from typing import Any, Protocol
 
 import httpx
 
 from tripwise_api.domain.geo import haversine_km
-from tripwise_api.integrations.cache import Cache, cache_key
 from tripwise_api.integrations.throttle import Throttle
 from tripwise_api.schemas.places import PlaceKind, PlaceResult
 from tripwise_api.schemas.trip import Place, PlaceSource
@@ -22,7 +19,6 @@ from tripwise_api.schemas.trip_request import GeoPoint
 logger = logging.getLogger(__name__)
 
 USER_AGENT = "Tripwise/0.1 (+https://tripwise-plan.web.app; portfolio trip planner)"
-CACHE_TTL = timedelta(days=30)
 ATTRIBUTION = "Search by OpenStreetMap data (Photon, Nominatim). © OpenStreetMap contributors"
 
 # Result types that name an area rather than a specific place.
@@ -70,6 +66,25 @@ def radius_from_box(south: float, north: float, west: float, east: float) -> flo
     except ValueError:
         return None
     return round(haversine_km(corner, opposite) / 2, 1)
+
+
+# Bus stops and platforms are often named after the sight they serve; they are not stops.
+TRANSIT = frozenset(
+    [
+        "bus_stop",
+        "platform",
+        "stop_position",
+        "stop_area",
+        "tram_stop",
+        "halt",
+        "subway_entrance",
+        "taxi",
+    ]
+)
+
+
+def _transit(*values: str | None) -> bool:
+    return any(v in TRANSIT for v in values if v)
 
 
 def _kind(*types: str | None) -> PlaceKind:
@@ -136,7 +151,7 @@ class PhotonGeocoder:
         props = feature.get("properties") or {}
         coords = (feature.get("geometry") or {}).get("coordinates") or []
         name = props.get("name")
-        if not name or len(coords) != 2:
+        if not name or len(coords) != 2 or _transit(props.get("osm_value"), props.get("type")):
             return None
         street = " ".join(p for p in (props.get("housenumber"), props.get("street")) if p)
         parts = [street, props.get("district"), props.get("city"), props.get("country")]
@@ -188,6 +203,8 @@ class NominatimGeocoder:
             location = GeoPoint(lat=float(item["lat"]), lng=float(item["lon"]))
         except (KeyError, TypeError, ValueError):
             return None
+        if _transit(item.get("type"), item.get("addresstype")):
+            return None
         display = str(item.get("display_name", ""))
         name = item.get("name") or display.split(",")[0]
         if not name:
@@ -206,42 +223,3 @@ class NominatimGeocoder:
             country_code=address.get("country_code"),
             radius_km=_nominatim_radius(item.get("boundingbox")),
         )
-
-
-class CachedGeocoder:
-    def __init__(self, inner: Geocoder, cache: Cache) -> None:
-        self._inner = inner
-        self._cache = cache
-        self.name = inner.name
-
-    async def search(
-        self, query: str, near: GeoPoint | None, limit: int, language: str
-    ) -> list[PlaceResult]:
-        bias = (round(near.lat, 2), round(near.lng, 2)) if near else None
-        key = cache_key(self.name, query.strip().lower(), bias, limit, language)
-        cached = await self._cache.get("geocode", key)
-        if isinstance(cached, list):
-            return [PlaceResult.model_validate(item) for item in cached]
-        results = await self._inner.search(query, near, limit, language)
-        await self._cache.set(
-            "geocode", key, [r.model_dump(mode="json") for r in results], CACHE_TTL
-        )
-        return results
-
-
-class FallbackGeocoder:
-    """Tries each geocoder in turn until one answers (an empty answer counts as an answer)."""
-
-    def __init__(self, geocoders: Sequence[Geocoder]) -> None:
-        self._geocoders = list(geocoders)
-        self.name = "+".join(g.name for g in self._geocoders)
-
-    async def search(
-        self, query: str, near: GeoPoint | None, limit: int, language: str
-    ) -> list[PlaceResult]:
-        for geocoder in self._geocoders:
-            try:
-                return await geocoder.search(query, near, limit, language)
-            except GeocodingError as error:
-                logger.warning("geocoder %s failed: %s", geocoder.name, error)
-        raise GeocodingError("every geocoder failed")

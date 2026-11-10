@@ -14,7 +14,7 @@ from dataclasses import dataclass, field
 from tripwise_api.domain.geo import haversine_km
 from tripwise_api.integrations.geocoding import Geocoder, GeocodingError
 from tripwise_api.planning.ai_models import AiStop
-from tripwise_api.planning.names import name_variants, names_match
+from tripwise_api.planning.names import name_variants, names_match, similarity
 from tripwise_api.schemas.places import PlaceKind, PlaceResult
 from tripwise_api.schemas.trip import Stop
 from tripwise_api.schemas.trip_request import Destination
@@ -60,15 +60,21 @@ def _as_list(lookups: Lookups) -> list[Geocoder]:
 def _pick(
     results: Iterable[PlaceResult], wanted: Sequence[str], destination: Destination, radius: float
 ) -> PlaceResult | None:
-    for result in results:
+    """The acceptable result whose name is closest to the suggestion (a bus stop named "to
+    Martyrs Square" must not beat the square itself)."""
+    best: tuple[float, int, PlaceResult] | None = None
+    for rank, result in enumerate(results):
         if result.kind is not PlaceKind.POI:
             continue
         names = [result.place.name, *([result.also_known_as] if result.also_known_as else [])]
         if not any(names_match(name, found) for name in wanted for found in names):
             continue
-        if haversine_km(result.place.location, destination.location) <= radius:
-            return result
-    return None
+        if haversine_km(result.place.location, destination.location) > radius:
+            continue
+        score = max(similarity(name, found) for name in wanted for found in names)
+        if best is None or score > best[0]:
+            best = (score, rank, result)
+    return best[2] if best else None
 
 
 def _queries(name: str, area: str, destination: Destination) -> list[tuple[str, str]]:

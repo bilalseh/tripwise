@@ -15,9 +15,8 @@ from tripwise_api.config import Settings, apply_emulator_hosts, load_settings
 from tripwise_api.dependencies import Clock, NewId, utc_now
 from tripwise_api.integrations.cache import Cache, FirestoreCache, LayeredCache, MemoryCache
 from tripwise_api.integrations.fake_geocoder import FakeGeocoder
+from tripwise_api.integrations.geocoder_wrappers import CachedGeocoder, FallbackGeocoder
 from tripwise_api.integrations.geocoding import (
-    CachedGeocoder,
-    FallbackGeocoder,
     Geocoder,
     NominatimGeocoder,
     PhotonGeocoder,

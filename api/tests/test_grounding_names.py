@@ -224,3 +224,24 @@ async def test_no_replacement_round_when_time_is_short() -> None:
 
     assert len(provider.requests) == 1
     assert [s.place.name for s in batch.days[0].stops] == ["Castle"]
+
+
+async def test_the_closest_name_wins_over_a_bus_stop_that_mentions_it() -> None:
+    stop_sign = poi("Bus (nr10) to Martyrs Square (1$)", 33.85, 35.52)
+    square = poi("Martyrs' Square", 33.8958, 35.5070)
+    osm = TableGeocoder("osm", {"Martyrs' Square, Lisbon": [stop_sign, square]})
+
+    found = await find_place(
+        osm,
+        "Martyrs' Square",
+        "",
+        LISBON.model_copy(update={"location": GeoPoint(lat=33.89, lng=35.50)}),
+        "en",
+    )
+
+    assert found is not None
+    assert found.place.name == "Martyrs' Square"
+
+
+def test_hyphen_look_alikes_are_normalised() -> None:
+    assert name_variants("Souk al\u2011Tawileh") == ["Souk al-Tawileh"]
