@@ -1,0 +1,33 @@
+# Dependencies and build output
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+
+# Environment files (only the examples and the emulator-only dev defaults are committed)
+.env
+.env.*
+!.env.example
+!web/.env.development
+
+# Playwright output
+e2e/test-results/
+e2e/playwright-report/
+
+# Python
+__pycache__/
+.venv/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+
+# Firebase
+.firebase/
+*-debug.log
+
+# OS and editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json

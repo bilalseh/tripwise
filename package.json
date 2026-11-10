@@ -1,0 +1,28 @@
+{
+  "name": "tripwise",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.30.3",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "dev:web": "pnpm --filter @tripwise/web dev",
+    "dev:api": "uv run --directory api uvicorn tripwise_api.main:create_app --factory --reload --port 8000",
+    "emulators": "firebase emulators:start --only auth,firestore --project demo-tripwise",
+    "lint": "pnpm -r --if-present lint",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "test": "pnpm -r --if-present test",
+    "test:rules": "firebase emulators:exec --only firestore --project demo-tripwise \"pnpm --filter @tripwise/firebase test:rules\"",
+    "test:e2e": "pnpm --filter @tripwise/e2e test:e2e",
+    "build": "pnpm --filter @tripwise/web build",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "gen:schemas": "uv run --directory api python scripts/export_schemas.py && pnpm --filter @tripwise/shared gen"
+  },
+  "devDependencies": {
+    "firebase-tools": "^15.35.0",
+    "prettier": "^3.9.10",
+    "prettier-plugin-tailwindcss": "^0.8.1"
+  }
+}

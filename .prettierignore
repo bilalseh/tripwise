@@ -1,0 +1,8 @@
+pnpm-lock.yaml
+api/
+**/dist/
+**/coverage/
+shared/src/generated/
+shared/schemas/
+e2e/test-results/
+e2e/playwright-report/

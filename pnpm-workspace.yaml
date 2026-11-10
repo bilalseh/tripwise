@@ -1,0 +1,10 @@
+packages:
+  - web
+  - shared
+  - firebase
+  - e2e
+
+# Install scripts these packages ship are not needed (config defaults, version notices).
+ignoredBuiltDependencies:
+  - '@firebase/util'
+  - protobufjs
