@@ -1,0 +1,98 @@
+name: Deploy
+
+# Deploys main after CI passes. Auth is keyless: GitHub's OIDC token is exchanged for
+# short-lived Google credentials through Workload Identity Federation (infra/gcp-setup.sh).
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+env:
+  PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+  REGION: us-east1
+  SERVICE: tripwise-api
+  SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+jobs:
+  api:
+    name: API to Cloud Run
+    # Skips until infra/gcp-setup.sh has run and its output is saved as repository variables.
+    if: >-
+      vars.GCP_WIF_PROVIDER != '' &&
+      (github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success')
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.SHA }}
+      - uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOYER_SA }}
+      - uses: google-github-actions/setup-gcloud@v3
+      - name: Build and push image
+        run: |
+          image="$REGION-docker.pkg.dev/$PROJECT_ID/tripwise/api:$SHA"
+          gcloud auth configure-docker "$REGION-docker.pkg.dev" --quiet
+          docker build --tag "$image" api
+          docker push "$image"
+      - name: Deploy service
+        # Spending guardrails live here: scale to zero, at most 2 instances, CPU billed only
+        # while a request is in flight.
+        run: |
+          gcloud run deploy "$SERVICE" \
+            --project "$PROJECT_ID" \
+            --region "$REGION" \
+            --image "$REGION-docker.pkg.dev/$PROJECT_ID/tripwise/api:$SHA" \
+            --service-account "tripwise-api@$PROJECT_ID.iam.gserviceaccount.com" \
+            --allow-unauthenticated \
+            --min-instances 0 \
+            --max-instances 2 \
+            --concurrency 40 \
+            --cpu 1 \
+            --memory 512Mi \
+            --cpu-throttling \
+            --timeout 60 \
+            --set-env-vars "ENVIRONMENT=production,FIREBASE_PROJECT_ID=$PROJECT_ID,APP_VERSION=${SHA::7}" \
+            --quiet
+      - name: Smoke test
+        run: |
+          url=$(gcloud run services describe "$SERVICE" --project "$PROJECT_ID" --region "$REGION" --format 'value(status.url)')
+          curl -fsS "$url/api/health"
+
+  web:
+    name: Web, rules and indexes to Firebase
+    needs: api
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.SHA }}
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOYER_SA }}
+      - run: >-
+          pnpm exec firebase deploy --only hosting,firestore
+          --project "$PROJECT_ID" --non-interactive --message "${SHA::7}"
+      - name: Smoke test through the Hosting rewrite
+        run: curl -fsS "https://$PROJECT_ID.web.app/api/health"
