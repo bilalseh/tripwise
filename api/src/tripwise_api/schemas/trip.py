@@ -110,6 +110,9 @@ class GroundingReport(ApiModel):
     kept: int = Field(ge=0)
     dropped: list[str] = Field(default_factory=list, max_length=60)
     trimmed: list[str] = Field(default_factory=list, max_length=60)
+    unchecked: list[str] = Field(
+        default_factory=list, max_length=60, description="Not verified before the time limit"
+    )
 
 
 class Trip(ApiModel):

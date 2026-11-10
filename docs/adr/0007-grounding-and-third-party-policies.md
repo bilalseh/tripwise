@@ -35,6 +35,10 @@ slot, a one-line reason, and duration and cost estimates. No coordinates, addres
 3. If OpenStreetMap has no acceptable match, ask **Wikidata** (labels and aliases in many
    languages, coordinates from property P625). A matched alias counts for the name check.
 4. Otherwise drop the suggestion and list it in the trip's grounding report, which the UI shows.
+   **Time budget:** grounding stops 45 seconds into the request (Hosting gives up at 60). Places
+   not verified by then (for example while a geocoder is having an outage) are left out and
+   listed separately as "not checked in time", never as "not found". A failing geocoder rests
+   for 30 seconds so the fallback is used straight away.
 5. **One replacement round:** if a day ends up two or more stops short of its pace, the AI is
    asked once for replacements, told which names were not found, and the replacements are
    grounded the same way. It is skipped when the first answer took over 25 seconds, so the

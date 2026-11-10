@@ -5,6 +5,8 @@ retry), and any locked stop it still drops is put back. Kept stops keep their re
 only new suggestions are geocoded.
 """
 
+import time
+
 from tripwise_api.ai.client import AiClient
 from tripwise_api.domain.ordering import order_stops
 from tripwise_api.domain.pace import trim_day
@@ -23,6 +25,9 @@ from tripwise_api.schemas.edits import AiEditProposal, EditAction
 from tripwise_api.schemas.profile import Language
 from tripwise_api.schemas.trip import Day, DayEstimates, GroundingReport, Stop
 from tripwise_api.schemas.trip_request import Pace, TripRequest
+
+# Grounding of new suggestions stops here (from the start of the request).
+GROUND_WITHIN_SECONDS = 45.0
 
 SLOWER = {Pace.PACKED: Pace.BALANCED, Pace.BALANCED: Pace.RELAXED, Pace.RELAXED: Pace.RELAXED}
 
@@ -50,6 +55,7 @@ async def propose_edit(
     language: Language,
     new_id: NewId,
 ) -> AiEditProposal:
+    started = time.monotonic()
     existing = {stop.id: stop for stop in day.stops}
     locked = [stop for stop in day.stops if stop.locked]
 
@@ -75,7 +81,11 @@ async def propose_edit(
     fresh = [s for s in proposal.stops if s.keep_id not in existing]
     fresh_rain = list(proposal.rain_plan) if action is EditAction.RAINY else []
     grounded = await ground_many(
-        lookups, [(s, destination) for s in (*fresh, *fresh_rain)], language.value, new_id
+        lookups,
+        [(s, destination) for s in (*fresh, *fresh_rain)],
+        language.value,
+        new_id,
+        deadline=started + GROUND_WITHIN_SECONDS,
     )
     log = GroundingLog()
     seen = {place_identity(s) for s in day.stops} | {place_identity(s) for s in day.rain_plan}
@@ -122,6 +132,7 @@ async def propose_edit(
         kept=len(ordered),
         dropped=log.dropped,
         trimmed=[s.place.name for s in trimmed],
+        unchecked=log.unchecked,
     )
     return AiEditProposal(
         action=action, day_index=day_index, day=new_day, summary=result.value.summary, report=report

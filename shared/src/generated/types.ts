@@ -180,6 +180,12 @@ export interface GroundingReport {
    * @maxItems 60
    */
   trimmed: string[];
+  /**
+   * Not verified before the time limit
+   *
+   * @maxItems 60
+   */
+  unchecked: string[];
 }
 
 export interface HealthResponse {

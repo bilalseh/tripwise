@@ -63,6 +63,7 @@ def _merge_reports(
         kept=old.kept + new.kept,
         dropped=[*old.dropped, *new.dropped][:60],
         trimmed=[*old.trimmed, *new.trimmed][:60],
+        unchecked=[*old.unchecked, *new.unchecked][:60],
     )
 
 

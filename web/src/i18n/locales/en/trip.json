@@ -141,7 +141,8 @@
   "grounding": {
     "title": "{{kept}} of {{suggested}} AI suggestions were matched to real places.",
     "dropped": "Left out because they could not be found on OpenStreetMap: {{names}}.",
-    "trimmed": "Left out so days fit your pace: {{names}}."
+    "trimmed": "Left out so days fit your pace: {{names}}.",
+    "unchecked": "Not checked in time because map search was slow, so left out: {{names}}. Re-plan later to try again."
   },
   "share": {
     "title": "Share this trip",

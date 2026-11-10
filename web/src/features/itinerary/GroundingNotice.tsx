@@ -6,7 +6,8 @@ import { useTranslation } from 'react-i18next';
 export function GroundingNotice({ report }: { report: GroundingReport | null }) {
   const { t } = useTranslation();
   const [hidden, setHidden] = useState(false);
-  if (!report || hidden || (!report.dropped.length && !report.trimmed.length)) return null;
+  if (!report || hidden) return null;
+  if (!report.dropped.length && !report.trimmed.length && !report.unchecked.length) return null;
   return (
     <div
       role="note"
@@ -18,6 +19,9 @@ export function GroundingNotice({ report }: { report: GroundingReport | null }) 
         </p>
         {report.dropped.length > 0 && (
           <p className="mt-1">{t('grounding.dropped', { names: report.dropped.join(', ') })}</p>
+        )}
+        {report.unchecked.length > 0 && (
+          <p className="mt-1">{t('grounding.unchecked', { names: report.unchecked.join(', ') })}</p>
         )}
         {report.trimmed.length > 0 && (
           <p className="mt-1">{t('grounding.trimmed', { names: report.trimmed.join(', ') })}</p>

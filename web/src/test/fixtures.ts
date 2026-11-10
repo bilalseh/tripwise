@@ -77,7 +77,14 @@ export function trip(overrides: Partial<Trip> = {}): Trip {
     createdAt: '2026-11-10T09:00:00Z',
     updatedAt: '2026-11-10T09:00:00Z',
     shareToken: null,
-    report: { provider: 'fake', suggested: 5, kept: 3, dropped: ['Invented Garden'], trimmed: [] },
+    report: {
+      provider: 'fake',
+      suggested: 5,
+      kept: 3,
+      dropped: ['Invented Garden'],
+      trimmed: [],
+      unchecked: [],
+    },
     ...overrides,
   };
 }

@@ -616,6 +616,14 @@
           },
           "maxItems": 60,
           "type": "array"
+        },
+        "unchecked": {
+          "description": "Not verified before the time limit",
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 60,
+          "type": "array"
         }
       },
       "required": [
@@ -623,7 +631,8 @@
         "suggested",
         "kept",
         "dropped",
-        "trimmed"
+        "trimmed",
+        "unchecked"
       ],
       "title": "GroundingReport",
       "type": "object"

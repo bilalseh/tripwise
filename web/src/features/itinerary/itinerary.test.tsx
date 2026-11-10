@@ -142,7 +142,7 @@ describe('itinerary editing', () => {
         stop('n1', 'Jardim da Estrela'),
       ]),
       summary: 'Fewer stops and a long lunch.',
-      report: { provider: 'fake', suggested: 1, kept: 2, dropped: [], trimmed: [] },
+      report: { provider: 'fake', suggested: 1, kept: 2, dropped: [], trimmed: [], unchecked: [] },
     };
     const api = routes({ 'POST /trips/demo-lisbon/ai-edit': () => proposal });
     renderRoute('/trips/demo-lisbon');

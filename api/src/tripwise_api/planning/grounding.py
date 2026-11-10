@@ -8,6 +8,7 @@ lookup's, never the AI's.
 
 import asyncio
 import logging
+import time
 from collections.abc import Callable, Iterable, Sequence
 from dataclasses import dataclass, field
 
@@ -39,9 +40,20 @@ Lookups = Geocoder | Sequence[Geocoder]
 class GroundingLog:
     suggested: int = 0
     dropped: list[str] = field(default_factory=list)
+    unchecked: list[str] = field(default_factory=list)
 
     def drop(self, name: str) -> None:
         self.dropped.append(name)
+
+
+class Unchecked:
+    """Marks a suggestion that could not be verified before the time limit."""
+
+    __slots__ = ()
+
+
+UNCHECKED = Unchecked()
+Grounded = Stop | Unchecked | None
 
 
 def search_radius_km(destination: Destination) -> float:
@@ -155,27 +167,41 @@ async def ground_many(
     suggestions: Sequence[tuple[AiStop, Destination]],
     language: str,
     new_id: NewId,
-) -> list[Stop | None]:
+    deadline: float | None = None,
+    clock: Callable[[], float] = time.monotonic,
+) -> list[Grounded]:
     """Ground suggestions concurrently (each lookup throttles itself to its usage policy).
-    The result lines up with the input; None marks a suggestion that was not found."""
-    return list(
-        await asyncio.gather(
-            *(ground_stop(lookups, s, d, language, new_id) for s, d in suggestions)
-        )
-    )
+    The result lines up with the input: a Stop, None when not found, or UNCHECKED when the
+    deadline (a `clock()` time) passed first, so a slow map service never times the request out."""
+    tasks = [
+        asyncio.ensure_future(ground_stop(lookups, s, d, language, new_id)) for s, d in suggestions
+    ]
+    if not tasks:
+        return []
+    timeout = None if deadline is None else max(0.0, deadline - clock())
+    done, pending = await asyncio.wait(tasks, timeout=timeout)
+    for task in pending:
+        task.cancel()
+    if pending:
+        await asyncio.gather(*pending, return_exceptions=True)
+    return [task.result() if task in done else UNCHECKED for task in tasks]
 
 
 def keep_found(
     suggestions: Sequence[AiStop],
-    grounded: Sequence[Stop | None],
+    grounded: Sequence[Grounded],
     log: GroundingLog,
     seen: set[str],
 ) -> list[Stop | None]:
-    """Blank out unresolved suggestions (logged as dropped) and repeats of places already in
-    `seen`. The result lines up with `suggestions`."""
+    """Blank out unresolved suggestions (logged as dropped), unchecked ones (logged apart) and
+    repeats of places already in `seen`. The result lines up with `suggestions`."""
     log.suggested += len(suggestions)
     kept: list[Stop | None] = []
     for suggestion, stop in zip(suggestions, grounded, strict=True):
+        if isinstance(stop, Unchecked):
+            log.unchecked.append(suggestion.name)
+            kept.append(None)
+            continue
         if stop is None:
             log.drop(suggestion.name)
             kept.append(None)

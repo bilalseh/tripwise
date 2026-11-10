@@ -30,6 +30,8 @@ from tripwise_api.schemas.trip_request import TripRequest
 # The replacement round only runs if the first answer came back within this time, so the
 # whole request still fits Firebase Hosting's 60-second limit.
 REFILL_WITHIN_SECONDS = 25.0
+# Grounding stops here (from the start of the request); unverified places are reported.
+GROUND_WITHIN_SECONDS = 45.0
 
 
 @dataclass(frozen=True, slots=True)
@@ -103,6 +105,8 @@ async def plan_days(
         [(stop, request.destinations[destinations[offset]]) for stop, offset in wanted],
         language.value,
         new_id,
+        deadline=started + GROUND_WITHIN_SECONDS,
+        clock=clock,
     )
     by_suggestion = {id(stop): found for (stop, _), found in zip(wanted, grounded, strict=True)}
 
@@ -131,6 +135,8 @@ async def plan_days(
             [*planned, *found_names],
             language,
             new_id,
+            deadline=started + GROUND_WITHIN_SECONDS,
+            clock=clock,
         )
 
     must_see_ids = frozenset(
@@ -169,5 +175,6 @@ async def plan_days(
         kept=sum(len(d.stops) + len(d.rain_plan) for d in days),
         dropped=log.dropped[:60],
         trimmed=trimmed[:60],
+        unchecked=log.unchecked[:60],
     )
     return PlannedBatch(days=days, report=report)

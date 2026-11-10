@@ -5,7 +5,8 @@ told which names could not be found. Replacements go through the same grounding 
 suggestion. It is best effort: if the AI is unavailable or time is short, the day stays as is.
 """
 
-from collections.abc import Sequence
+import time
+from collections.abc import Callable, Sequence
 
 from tripwise_api.ai.client import AiClient
 from tripwise_api.ai.types import AiUnavailableError
@@ -48,6 +49,8 @@ async def refill_days(
     planned: Sequence[str],
     language: Language,
     new_id: NewId,
+    deadline: float | None = None,
+    clock: Callable[[], float] = time.monotonic,
 ) -> None:
     """Add grounded replacements to short days, in place. No-op when nothing was dropped."""
     needed = stops_needed(drafts, request, first_day)
@@ -80,6 +83,8 @@ async def refill_days(
         [(stop, request.destinations[request.destination_for_day(d)]) for stop, d in wanted],
         language.value,
         new_id,
+        deadline=deadline,
+        clock=clock,
     )
     for (stop, day), found in zip(wanted, grounded, strict=True):
         drafts[day - first_day].stops.extend(present(keep_found([stop], [found], log, seen)))

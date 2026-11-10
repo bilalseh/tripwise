@@ -1,5 +1,7 @@
 """Name matching, search radius, lookup fallbacks and the replacement round."""
 
+import asyncio
+import itertools
 import json
 from typing import Any
 
@@ -14,7 +16,7 @@ from tripwise_api.planning.grounding import CITY_KM, COUNTRY_KM, find_place, sea
 from tripwise_api.planning.names import name_variants, names_match
 from tripwise_api.schemas.places import PlaceKind, PlaceResult
 from tripwise_api.schemas.profile import Language
-from tripwise_api.schemas.trip import Place, PlaceSource
+from tripwise_api.schemas.trip import Place, PlaceSource, Slot, StopCategory
 from tripwise_api.schemas.trip_request import Destination, GeoPoint, Pace
 
 pytestmark = pytest.mark.anyio
@@ -208,7 +210,9 @@ async def test_short_days_get_one_round_of_grounded_replacements() -> None:
 async def test_no_replacement_round_when_time_is_short() -> None:
     first = json.dumps({"days": [_day(["Castle", "Invented A", "Invented B", "Invented C"])]})
     provider = ScriptedProvider("gemini", [first])
-    ticks = iter([0.0, 100.0])
+    # Start, then the AI answer took 30 s: still inside the grounding deadline (45 s), too late
+    # for a replacement round (25 s).
+    ticks = itertools.chain([0.0, 0.0], itertools.repeat(30.0))
 
     batch = await plan_days(
         AiClient([provider]),
@@ -280,3 +284,35 @@ async def test_the_area_hint_keeps_same_named_places_elsewhere_out() -> None:
 
     assert found is not None
     assert found.place.location.lat == 34.1212
+
+
+async def test_places_not_checked_before_the_deadline_are_reported_apart() -> None:
+    class SlowGeocoder:
+        name = "slow"
+
+        async def search(
+            self, query: str, near: GeoPoint | None, limit: int, language: str
+        ) -> list[PlaceResult]:
+            await asyncio.sleep(5)
+            return []
+
+    from tripwise_api.planning.ai_models import AiStop
+    from tripwise_api.planning.grounding import UNCHECKED, GroundingLog, ground_many, keep_found
+
+    stop = AiStop(
+        name="Castle",
+        category=StopCategory.SIGHT,
+        slot=Slot.MORNING,
+        reason="",
+        duration_minutes=60,
+        cost_estimate=0,
+    )
+    grounded = await ground_many(
+        SlowGeocoder(), [(stop, LISBON)], "en", counter_ids(), deadline=0.0, clock=lambda: 0.05
+    )
+
+    assert grounded == [UNCHECKED]
+    log = GroundingLog()
+    assert keep_found([stop], grounded, log, set()) == [None]
+    assert log.unchecked == ["Castle"]
+    assert log.dropped == []
