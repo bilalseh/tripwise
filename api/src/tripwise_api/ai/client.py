@@ -89,20 +89,23 @@ class AiClient:
                 try:
                     raw = await provider.generate_json(request)
                 except ProviderError as error:
-                    logger.warning("ai %s failed on %s: %s", task, provider.name, error.kind.value)
+                    logger.warning("ai %s failed: %s", task, error)
                     self._cool_down(error)
                     break
                 try:
                     value = model.model_validate_json(raw)
                 except ValidationError as error:
+                    invalid = describe_problems(error)
+                    # Field paths and messages only (no input values), to diagnose providers.
                     logger.warning(
-                        "ai %s from %s invalid (attempt %d): %d problem(s)",
+                        "ai %s from %s invalid (attempt %d): %d problem(s): %s",
                         task,
                         provider.name,
                         attempt + 1,
                         error.error_count(),
+                        invalid,
                     )
-                    request = base.with_repair(raw, describe_problems(error))
+                    request = base.with_repair(raw, invalid)
                     continue
                 problems = check(value) if check else []
                 if problems:

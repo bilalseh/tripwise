@@ -17,6 +17,16 @@ def _failure_kind(response: httpx.Response) -> FailureKind:
     return FailureKind.REJECTED
 
 
+def _reason(response: httpx.Response) -> str:
+    """The provider's own error message (never contains the key), shortened for logs."""
+    try:
+        error = response.json().get("error", {})
+    except ValueError:
+        return ""
+    message = error.get("message", "") if isinstance(error, dict) else str(error)
+    return str(message)[:160]
+
+
 async def _post_json(
     provider: str,
     client: httpx.AsyncClient,
@@ -31,7 +41,9 @@ async def _post_json(
     except httpx.HTTPError as exc:
         raise ProviderError(provider, FailureKind.TRANSIENT, type(exc).__name__) from exc
     if response.is_error:
-        raise ProviderError(provider, _failure_kind(response), f"HTTP {response.status_code}")
+        raise ProviderError(
+            provider, _failure_kind(response), f"HTTP {response.status_code} {_reason(response)}"
+        )
     return response.json()
 
 
