@@ -54,14 +54,16 @@ jobs:
         env:
           APP_SECRETS: ${{ vars.APP_SECRETS }}
         run: |
-          secret_flags=()
-          ai="fake"
-          if [ -n "$APP_SECRETS" ]; then
-            secret_flags=(--set-secrets "$APP_SECRETS")
-            ai="gemini,groq"
-          fi
           env_vars="ENVIRONMENT=production,FIREBASE_PROJECT_ID=$PROJECT_ID,APP_VERSION=${SHA::7}"
-          env_vars+=",APP_URL=https://$PROJECT_ID.web.app,AI_PROVIDERS=$ai,PLACES_PROVIDER=osm"
+          env_vars+=",APP_URL=https://$PROJECT_ID.web.app,PLACES_PROVIDER=osm"
+          secret_flags=()
+          if [ -n "$APP_SECRETS" ]; then
+            # With keys the API uses its default provider order, gemini then groq. (A comma
+            # inside a value would split --set-env-vars, so that list is never passed here.)
+            secret_flags=(--set-secrets "$APP_SECRETS")
+          else
+            env_vars+=",AI_PROVIDERS=fake"
+          fi
           gcloud run deploy "$SERVICE" "${secret_flags[@]}" \
             --project "$PROJECT_ID" \
             --region "$REGION" \
