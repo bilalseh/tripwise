@@ -1,0 +1,206 @@
+{
+  "trip": {
+    "notFound": "This trip does not exist, or it belongs to another account.",
+    "dayCount_one": "{{count}} day",
+    "dayCount_other": "{{count}} days",
+    "sections": "Trip sections",
+    "tabs": {
+      "plan": "Plan",
+      "budget": "Budget",
+      "packing": "Packing",
+      "documents": "Documents",
+      "weather": "Weather"
+    },
+    "actions": {
+      "share": "Share",
+      "pdf": "PDF",
+      "ics": "Calendar (.ics)",
+      "icsNeedsDates": "Add dates to the trip to export a calendar.",
+      "duplicate": "Use as template",
+      "regenerate": "Re-plan"
+    },
+    "regenerate": {
+      "title": "Re-plan the whole trip?",
+      "body": "The AI plans every day again. Stops you locked stay on their day; everything else is replaced. You can undo the result.",
+      "confirm": "Re-plan",
+      "unsaved": "Wait for your last changes to save first."
+    },
+    "delete": {
+      "title": "Delete this trip?",
+      "body": "\"{{title}}\", its packing list and documents will be deleted for good."
+    }
+  },
+  "generate": {
+    "title": "Planning your trip",
+    "progress": "{{done}} of {{total}} days planned",
+    "step1": "1. The AI suggests places for each day.",
+    "step2": "2. Each one is looked up on OpenStreetMap; anything not found is left out.",
+    "step3": "3. Stops are grouped by area and ordered to keep travel short.",
+    "retry": "Try again",
+    "seePlans": "See plans",
+    "resets": "Your AI allowance resets at {{time}}.",
+    "error": {
+      "limit": "You have used today's AI requests.",
+      "busy": "The AI or the map search is busy right now.",
+      "failed": "Planning stopped unexpectedly."
+    }
+  },
+  "edit": {
+    "undo": "Undo",
+    "redo": "Redo",
+    "saved": "All changes saved",
+    "saving": "Saving",
+    "saveFailed": "Could not save.",
+    "conflict": "This trip changed in another tab.",
+    "reload": "Reload"
+  },
+  "itinerary": {
+    "viewLegend": "Itinerary view",
+    "view": { "day": "Day", "trip": "Whole trip" },
+    "addPlace": "Add place"
+  },
+  "day": {
+    "heading": "Day {{number}}",
+    "total": "About {{time}} with travel",
+    "overloaded": "busy for your pace",
+    "empty": "No stops yet. Add a place or drag one here.",
+    "rainPlan_one": "If it rains: {{count}} indoor option",
+    "rainPlan_other": "If it rains: {{count}} indoor options",
+    "useRain": "Add to day"
+  },
+  "stop": {
+    "label": "Stop {{number}}: {{name}}",
+    "drag": "Drag to move {{name}}",
+    "showOnMap": "Show {{name}} on the map",
+    "time": "from {{time}}",
+    "costEstimate": "about {{cost}} (estimate)",
+    "free": "free or no entry fee (estimate)",
+    "locked": "Locked",
+    "note": "Note",
+    "lock": "Lock",
+    "unlock": "Unlock",
+    "moveTo": "Move {{name}} to another day",
+    "move": "Move to",
+    "remove": "Remove {{name}}"
+  },
+  "leg": {
+    "walk": "{{time}} walk, {{distance}}",
+    "drive": "{{time}} by car or transit, {{distance}}",
+    "source": { "estimate": "straight-line estimate", "osrm": "road route (OSRM)" }
+  },
+  "map": {
+    "marker": "Day {{day}}, stop {{number}}: {{name}}",
+    "unavailable": "The map cannot be shown on this device. The itinerary below has every stop and address.",
+    "label": "Map of the trip",
+    "linesNote": "Lines connect stops in order; they are not walking routes."
+  },
+  "dnd": {
+    "instructions": "To move a stop, press space or enter, use the arrow keys, then press space or enter again to drop it. Press escape to cancel."
+  },
+  "addPlace": {
+    "title": "Add a place to day {{number}}",
+    "label": "Search for a place",
+    "placeholder": "A museum, café or park in {{city}}",
+    "slot": "Time of day",
+    "search": "Search",
+    "failed": "Search is unavailable right now. Please try again.",
+    "none": "No places found. Try a different name.",
+    "add": "Add {{name}}"
+  },
+  "ai": {
+    "label": "Ask the AI to change day {{number}}",
+    "ask": "Ask the AI",
+    "thinking": "Thinking",
+    "action": {
+      "relaxed": "Make it more relaxed",
+      "rainy": "Add a rainy-day option",
+      "local_food": "More local food",
+      "cheaper": "Make it cheaper"
+    },
+    "errors": {
+      "limit": "You have used today's AI requests. They reset at midnight UTC.",
+      "busy": "The AI is busy right now. Please try again in a minute.",
+      "failed": "The AI could not change this day. Please try again."
+    }
+  },
+  "diff": {
+    "title": "{{action}}: day {{number}}",
+    "reject": "Keep my day",
+    "accept": "Apply changes",
+    "cost": "Estimated day cost: {{before}} now, {{after}} after.",
+    "listLabel": "Stops after the change",
+    "addedNote": "new",
+    "rain": "Rainy-day options",
+    "nothing": "The AI did not suggest any change for this day.",
+    "add": "Added",
+    "remove": "Removed",
+    "change": "Changed",
+    "same": "Unchanged",
+    "field": { "slot": "time of day", "position": "new position" }
+  },
+  "grounding": {
+    "title": "{{kept}} of {{suggested}} AI suggestions were matched to real places.",
+    "dropped": "Left out because they could not be found on OpenStreetMap: {{names}}.",
+    "trimmed": "Left out so days fit your pace: {{names}}."
+  },
+  "share": {
+    "title": "Share this trip",
+    "body": "Anyone with the link can see the map and the day-by-day plan. They cannot edit it, and they never see your notes, budget, packing list or documents.",
+    "link": "Read-only link",
+    "copy": "Copy link",
+    "copied": "Copied",
+    "open": "Open",
+    "revoke": "Turn off link",
+    "create": "Create link",
+    "private": "Turning the link off makes it stop working at once."
+  },
+  "shared": {
+    "missingTitle": "This link no longer works",
+    "missingBody": "The owner may have turned it off.",
+    "planYourOwn": "Plan your own trip",
+    "badge": "Shared trip, read only",
+    "cta": "Like this plan?"
+  },
+  "duplicate": {
+    "defaultTitle": "{{title}} (copy)",
+    "title": "Use as a template",
+    "body": "Copies the days, stops, packing list and documents to a new trip, with nothing checked off.",
+    "name": "Name of the new trip",
+    "start": "New start date (optional)",
+    "confirm": "Create copy"
+  },
+  "print": {
+    "save": "Save as PDF",
+    "back": "Back to the trip",
+    "hint": "In the print dialog, choose \"Save as PDF\" as the destination.",
+    "mapAlt": "Map of every stop on the trip",
+    "budget": "Budget (estimates)",
+    "footer": "Made with Tripwise. Places from OpenStreetMap; times, durations and costs are estimates. Check opening hours before you go."
+  },
+  "budget": {
+    "estimate": "estimate",
+    "yours": "your number",
+    "disclaimer": "All amounts are estimates in {{currency}} for the whole group, not quotes or prices.",
+    "perDay": "Per day and category",
+    "day": "Day",
+    "total": "Total",
+    "cellLabel": "{{category}} on day {{number}}",
+    "overrideHint": "Type your own number to replace an estimate; clear it to go back to the estimate.",
+    "category": {
+      "stay": "Stay",
+      "food": "Food",
+      "transport": "Transport",
+      "activities": "Activities"
+    },
+    "estimatedTotal": "Estimated total",
+    "noLimit": "Add a total budget in a new trip to compare against it.",
+    "meterLabel": "Estimated total against your budget",
+    "meterText": "{{percent}}% of {{limit}}",
+    "status": {
+      "under": "{{percent}}% of your {{limit}} budget, {{diff}} to spare.",
+      "near": "{{percent}}% of your {{limit}} budget, close to the limit.",
+      "over": "{{diff}} over your {{limit}} budget.",
+      "unset": ""
+    }
+  }
+}

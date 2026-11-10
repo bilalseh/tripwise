@@ -1,17 +1,26 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
+import arAccount from './locales/ar/account.json';
 import arCommon from './locales/ar/common.json';
+import arEssentials from './locales/ar/essentials.json';
+import arTrip from './locales/ar/trip.json';
+import arWizard from './locales/ar/wizard.json';
+import enAccount from './locales/en/account.json';
 import enCommon from './locales/en/common.json';
+import enEssentials from './locales/en/essentials.json';
+import enTrip from './locales/en/trip.json';
+import enWizard from './locales/en/wizard.json';
 
 export const LANGUAGES = ['en', 'ar'] as const;
 export type AppLanguage = (typeof LANGUAGES)[number];
 
+// One file per area keeps each small; they merge into a single namespace.
+const en = { ...enCommon, ...enWizard, ...enTrip, ...enEssentials, ...enAccount };
+const ar = { ...arCommon, ...arWizard, ...arTrip, ...arEssentials, ...arAccount };
+
 export const defaultNS = 'translation';
-export const resources = {
-  en: { translation: enCommon },
-  ar: { translation: arCommon },
-} as const;
+export const resources = { en: { translation: en }, ar: { translation: ar } } as const;
 
 const STORAGE_KEY = 'tripwise.language';
 

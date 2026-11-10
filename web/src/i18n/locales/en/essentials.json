@@ -1,0 +1,128 @@
+{
+  "packing": {
+    "progress": "{{packed}} of {{total}} packed",
+    "newItem": "Add an item",
+    "category": "Category",
+    "categories": {
+      "documents": "Documents",
+      "clothing": "Clothing (per person)",
+      "toiletries": "Toiletries",
+      "health": "Health",
+      "electronics": "Electronics",
+      "kids": "Kids",
+      "gear": "Gear",
+      "other": "Other"
+    },
+    "remove": "Remove {{item}}",
+    "items": {
+      "passport": "Passport",
+      "id_card": "ID card or driving licence",
+      "payment_cards": "Bank cards and some cash",
+      "insurance_copy": "Travel insurance details",
+      "underwear": "Underwear",
+      "socks": "Socks",
+      "tops": "T-shirts and tops",
+      "trousers": "Trousers or skirts",
+      "walking_shoes": "Comfortable walking shoes",
+      "sleepwear": "Sleepwear",
+      "light_jacket": "Light jacket",
+      "warm_coat": "Warm coat",
+      "hat_gloves": "Hat, scarf and gloves",
+      "thermal_layers": "Thermal layers",
+      "shorts": "Shorts",
+      "swimwear": "Swimwear",
+      "sun_hat": "Sun hat",
+      "rain_jacket": "Rain jacket or umbrella",
+      "smart_outfit": "One smart outfit",
+      "toothbrush": "Toothbrush and toothpaste",
+      "toiletries": "Toiletries",
+      "sunscreen": "Sunscreen",
+      "insect_repellent": "Insect repellent",
+      "medication": "Personal medication",
+      "first_aid": "Small first-aid kit",
+      "phone_charger": "Phone charger",
+      "power_adapter": "Plug adapter",
+      "power_bank": "Power bank",
+      "daypack": "Daypack",
+      "water_bottle": "Reusable water bottle",
+      "hiking_boots": "Hiking shoes",
+      "sunglasses": "Sunglasses",
+      "reusable_bag": "Foldable shopping bag",
+      "snacks_kids": "Snacks for the kids",
+      "kids_entertainment": "Books or games for the kids",
+      "kids_spare_clothes": "Spare clothes for each child",
+      "wet_wipes": "Wet wipes",
+      "laundry_bag": "Laundry bag"
+    },
+    "templates": {
+      "title": "Templates",
+      "name": "Template name",
+      "saved": "Saved as a template.",
+      "use": "Add items",
+      "delete": "Delete template {{name}}",
+      "none": "No templates yet. Save this list to reuse it on another trip."
+    }
+  },
+  "documents": {
+    "passportRule": "Many countries require a passport valid for months after you leave. To be safe, it should be valid until at least {{date}}. Check the official rules for your destination.",
+    "due": "Do by",
+    "note": "Note",
+    "remove": "Remove {{item}}",
+    "add": "Add a document or task",
+    "officialTitle": "Entry rules and visas",
+    "officialBody": "Tripwise does not give visa or entry advice. Check the official source for your nationality and destination:",
+    "items": {
+      "passport": "Passport valid long enough",
+      "visa": "Visa or travel authorisation, if needed",
+      "insurance": "Travel insurance",
+      "tickets": "Tickets downloaded or printed",
+      "bookings": "Stays and activities confirmed",
+      "children": "Children's documents and consent letters",
+      "accessibility": "Accessibility arrangements",
+      "health": "Health requirements and prescriptions"
+    },
+    "hints": {
+      "passport": "Check the expiry date and blank pages.",
+      "visa": "Requirements depend on your passport. See the official sources.",
+      "insurance": "Cover for health, cancellation and belongings.",
+      "tickets": "Keep offline copies on your phone.",
+      "bookings": "Note the confirmation numbers here.",
+      "children": "Some countries ask for a letter if a parent is not travelling.",
+      "accessibility": "Tell airlines and stays what you need ahead of time.",
+      "health": "Vaccinations, medication rules and a doctor's letter if needed."
+    },
+    "links": {
+      "eu_travel": "EU: Travel Europe (ETIAS and the Entry/Exit System)",
+      "travel_state_gov": "United States: travel.state.gov country pages",
+      "gov_uk": "United Kingdom: GOV.UK foreign travel advice",
+      "travel_gc_ca": "Canada: travel.gc.ca advisories",
+      "smartraveller": "Australia: Smartraveller destinations"
+    }
+  },
+  "weather": {
+    "condition": {
+      "clear": "Sunny",
+      "cloudy": "Cloudy",
+      "fog": "Fog",
+      "rain": "Rain",
+      "snow": "Snow",
+      "storm": "Storms",
+      "unknown": "Unknown"
+    },
+    "kind": {
+      "forecast": "Forecast from Open-Meteo",
+      "typical": "Last year on these dates, a hint of typical weather",
+      "unavailable": "No weather"
+    },
+    "typicalShort": "typical",
+    "unavailableTitle": "No weather yet",
+    "unavailableBody": "Weather could not be loaded right now.",
+    "noDates": "Add dates to the trip to see the weather.",
+    "rainChance": "{{value}}% chance of rain",
+    "rainAmount": "{{value}} mm of rain",
+    "explain": {
+      "forecast": "Daily forecast for your dates. Forecasts change, so check again closer to the day.",
+      "typical": "Your trip is beyond the 16-day forecast. These are the same dates last year, as a hint of typical weather, not a forecast."
+    }
+  }
+}

@@ -26,3 +26,40 @@
     }
   }
 }
+
+/* Numbered map markers (coloured per day by TripMap). */
+.tw-marker {
+  display: flex;
+  width: 1.75rem;
+  height: 1.75rem;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid white;
+  border-radius: 9999px;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.35);
+  color: white;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.tw-marker-selected {
+  transform: scale(1.3);
+  outline: 3px solid var(--color-accent-500);
+}
+
+/* MapLibre's controls follow the page direction in Arabic. */
+[dir='rtl'] .maplibregl-ctrl-top-right {
+  right: auto;
+  left: 0;
+}
+
+@media print {
+  @page {
+    margin: 14mm;
+  }
+
+  body {
+    background: white;
+  }
+}

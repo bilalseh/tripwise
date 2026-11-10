@@ -1,0 +1,145 @@
+{
+  "wizard": {
+    "back": "Back",
+    "next": "Next",
+    "progress": "Step {{step}} of {{total}}",
+    "progressLabel": "Trip wizard progress",
+    "stepName": {
+      "destination": "Destination",
+      "dates": "Dates",
+      "travelers": "Travellers",
+      "budget": "Budget",
+      "interests": "Interests",
+      "pace": "Pace",
+      "constraints": "Needs",
+      "review": "Review"
+    },
+    "destination": {
+      "title": "Where are you going?",
+      "hint": "Search for a city or region. Add up to three for a multi-stop trip.",
+      "label": "Destination",
+      "placeholder": "For example Lisbon",
+      "search": "Search",
+      "tooShort": "Type at least two letters, then search.",
+      "required": "Pick at least one destination from the search results.",
+      "failed": "Search is unavailable right now. Please try again.",
+      "noResults": "No places found. Try another spelling or a nearby city.",
+      "picked_one": "Your destination",
+      "picked_other": "Your {{count}} destinations, in order",
+      "remove": "Remove {{name}}",
+      "max": "Three destinations is the maximum."
+    },
+    "dates": {
+      "title": "When, and for how long?",
+      "hint": "Exact dates give you a weather forecast and calendar export. You can add dates later.",
+      "missing": "Choose a start and an end date.",
+      "past": "The trip cannot start in the past.",
+      "order": "The end date must be on or after the start date.",
+      "length": "A trip can be 1 to {{max}} days.",
+      "split": "The days per destination must add up to {{total}}, with at least one each.",
+      "modeLegend": "How to set the length",
+      "byDates": "Exact dates",
+      "byDatesHint": "I know when I am going.",
+      "byDays": "Number of days",
+      "byDaysHint": "Dates are not fixed yet.",
+      "start": "First day",
+      "end": "Last day",
+      "days": "Number of days",
+      "splitLegend": "Days in each destination ({{total}} in total)",
+      "summary_one": "{{count}} day",
+      "summary_other": "{{count}} days"
+    },
+    "travelers": {
+      "title": "Who is travelling?",
+      "party": {
+        "solo": "Solo",
+        "couple": "Couple",
+        "family": "Family with kids",
+        "friends": "Friends"
+      },
+      "partyHint": {
+        "solo": "Just me.",
+        "couple": "Two adults.",
+        "family": "Adults with children: shorter days, kid-friendly stops.",
+        "friends": "A group of adults."
+      },
+      "adults": "Adults",
+      "children": "Children",
+      "adultsMin": "At least one adult.",
+      "adultsMax": "Up to 12 adults.",
+      "childrenMax": "Up to 10 children.",
+      "familyNeedsChild": "A family trip includes at least one child.",
+      "friendsNeedTwo": "A group of friends is at least two adults."
+    },
+    "budget": {
+      "title": "What is your budget?",
+      "hint": "Costs are estimates for the whole group, in the currency you choose.",
+      "levelLegend": "Budget level",
+      "level": { "budget": "Budget", "moderate": "Moderate", "luxury": "Luxury" },
+      "levelHint": {
+        "budget": "Free sights, street food, simple stays.",
+        "moderate": "A mix of paid sights and good local restaurants.",
+        "luxury": "Top experiences and fine dining."
+      },
+      "currency": "Currency",
+      "amount": "Total budget (optional)",
+      "amountHint": "For the whole trip. Used for the budget meter.",
+      "amountPositive": "Enter an amount above zero, or leave it empty.",
+      "amountMax": "That amount is too large."
+    },
+    "interests": {
+      "title": "What do you enjoy?",
+      "hint": "Pick as many as you like.",
+      "required": "Pick at least one interest."
+    },
+    "pace": {
+      "title": "How full should each day be?",
+      "hint": {
+        "relaxed": "About 3 stops a day, with long breaks.",
+        "balanced": "About 5 stops a day.",
+        "packed": "6 or more stops a day, early starts."
+      }
+    },
+    "constraints": {
+      "title": "Anything we should know?",
+      "hint": "All optional. The plan respects these needs.",
+      "mobility": "Mobility",
+      "mobilityOption": {
+        "none": "No special needs",
+        "limited": "Limited walking",
+        "wheelchair": "Wheelchair user"
+      },
+      "dietary": "Dietary needs",
+      "mustSee": "Must-see places",
+      "mustSeePlaceholder": "One per line, for example Belém Tower",
+      "notes": "Other notes",
+      "tooMany": "Up to 10 must-see places.",
+      "tooLong": "One of the entries is too long."
+    },
+    "review": {
+      "title": "Review your trip",
+      "hint": "Check the answers, then let Tripwise build the plan.",
+      "editLabel": "Edit {{section}}",
+      "tripTitle": "Trip name",
+      "where": "Where",
+      "when": "When",
+      "who": "Who",
+      "budget": "Budget",
+      "interests": "Interests",
+      "pace": "Pace",
+      "constraints": "Needs",
+      "dayCount_one": "{{count}} day",
+      "dayCount_other": "{{count}} days",
+      "flexible_one": "{{count}} day, dates not set",
+      "flexible_other": "{{count}} days, dates not set",
+      "people": "Family: {{adults}} adults, {{children}} children",
+      "none": "None",
+      "aiNote": "The AI suggests places; every one is checked against OpenStreetMap before it is shown. Times and costs are estimates.",
+      "invalid": "Some answers are missing. Go back and check each step.",
+      "create": "Build my plan",
+      "creating": "Saving",
+      "limit": "Your plan's trip limit is reached. Delete a trip or upgrade to Pro.",
+      "failed": "The trip could not be saved. Please try again."
+    }
+  }
+}

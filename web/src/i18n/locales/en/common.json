@@ -1,37 +1,93 @@
 {
-  "app": {
-    "name": "Tripwise",
-    "home": "Tripwise home"
-  },
+  "app": { "name": "Tripwise", "home": "Tripwise home" },
   "nav": {
     "skipToContent": "Skip to content",
     "switchLanguage": "العربية",
-    "switchLanguageLabel": "Switch to Arabic"
+    "switchLanguageLabel": "Switch to Arabic",
+    "main": "Main",
+    "trips": "My trips",
+    "pricing": "Pricing",
+    "settings": "Settings"
   },
-  "landing": {
-    "badge": "In development",
-    "title": "Plan a trip in minutes",
-    "subtitle": "Answer a few questions and get a day-by-day itinerary on a map, with a budget, a packing list and a documents checklist. Edit everything by dragging; it re-plans when something changes.",
-    "featuresHeading": "What makes it more than a chat",
-    "features": {
-      "map": {
-        "title": "Real places on a map",
-        "body": "Every suggestion is matched to a real place with coordinates before you see it, and each day is grouped so you are not zig-zagging across town."
-      },
-      "edit": {
-        "title": "Edit by dragging",
-        "body": "Reorder stops, move them between days, lock the ones you love and ask the AI to make a day more relaxed. Every change can be undone."
-      },
-      "essentials": {
-        "title": "Everything in one place",
-        "body": "Budget per day and category, a packing list, a documents checklist and the weather, saved together and shareable as a read-only link."
-      }
-    }
+  "footer": {
+    "planningOnly": "Planning only: no bookings, payments for travel or affiliate links.",
+    "data": "Maps © OpenStreetMap contributors, OpenFreeMap. Weather by Open-Meteo."
+  },
+  "actions": {
+    "close": "Close",
+    "remove": "Remove",
+    "edit": "Edit",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "save": "Save",
+    "add": "Add",
+    "dismiss": "Dismiss"
+  },
+  "states": {
+    "loading": "Loading",
+    "errorTitle": "Something went wrong",
+    "errorBody": "We could not load this. Check your connection and try again.",
+    "retry": "Try again"
   },
   "status": {
     "checking": "Checking the API",
     "online": "API online (version {{version}})",
     "offline": "API unreachable"
+  },
+  "auth": {
+    "restoring": "Checking your session",
+    "preparing": "Getting your trips ready",
+    "preparingDemo": "Preparing the demo",
+    "demo": "Try the demo",
+    "demoHint": "No sign-up: a private demo account with two sample trips.",
+    "google": "Continue with Google",
+    "pending": "Signing in",
+    "errors": {
+      "cancelled": "Sign-in was cancelled.",
+      "generic": "Sign-in failed. Please try again."
+    },
+    "title": "Sign in to Tripwise",
+    "subtitle": "Plan, edit and keep every trip in one place.",
+    "demoName": "Demo traveller",
+    "demoBadge": "Demo",
+    "signOut": "Sign out",
+    "signIn": "Sign in"
+  },
+  "landing": {
+    "title": "Plan a trip in minutes",
+    "subtitle": "Answer a few questions and get a day-by-day itinerary on a map, with a budget, a packing list and a documents checklist. Edit everything by dragging; it re-plans when something changes.",
+    "planningOnly": "Planning only. Tripwise never books or sells anything.",
+    "openTrips": "Open my trips",
+    "howHeading": "How it works",
+    "steps": {
+      "wizard": {
+        "title": "Answer eight quick questions",
+        "body": "Where, when, who is coming, budget, interests, pace and anything to avoid."
+      },
+      "plan": {
+        "title": "Get a plan on the map",
+        "body": "Every suggestion is matched to a real place; days are grouped by area and ordered to keep travel short."
+      },
+      "tweak": {
+        "title": "Make it yours",
+        "body": "Drag stops, lock favourites, ask the AI for a calmer or cheaper day, and undo anything."
+      }
+    },
+    "featuresHeading": "What makes it more than a chat",
+    "features": {
+      "map": {
+        "title": "Real places on a map",
+        "body": "Addresses and coordinates come from OpenStreetMap, never from the AI. Places it cannot verify are left out and listed."
+      },
+      "edit": {
+        "title": "Edit by dragging",
+        "body": "Reorder stops, move them between days and see travel times update. Every change can be undone."
+      },
+      "essentials": {
+        "title": "Everything in one place",
+        "body": "Budget, packing list, documents checklist and weather, saved together and shareable as a read-only link."
+      }
+    }
   },
   "notFound": {
     "title": "Page not found",
@@ -42,5 +98,34 @@
     "title": "Something went wrong",
     "body": "An unexpected error stopped this page from loading. Reloading usually fixes it.",
     "reload": "Reload the page"
-  }
+  },
+  "interests": {
+    "food": "Food",
+    "history": "History",
+    "art": "Art and museums",
+    "nature": "Nature",
+    "nightlife": "Nightlife",
+    "shopping": "Shopping",
+    "relaxation": "Relaxation",
+    "adventure": "Adventure"
+  },
+  "pace": { "relaxed": "Relaxed", "balanced": "Balanced", "packed": "Packed" },
+  "dietary": {
+    "vegetarian": "Vegetarian",
+    "vegan": "Vegan",
+    "halal": "Halal",
+    "kosher": "Kosher",
+    "gluten_free": "Gluten-free"
+  },
+  "category": {
+    "sight": "Sight",
+    "museum": "Museum",
+    "food": "Food",
+    "nature": "Nature",
+    "nightlife": "Nightlife",
+    "shopping": "Shopping",
+    "activity": "Activity",
+    "relax": "Rest"
+  },
+  "slot": { "morning": "Morning", "afternoon": "Afternoon", "evening": "Evening" }
 }
