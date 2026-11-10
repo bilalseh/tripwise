@@ -29,6 +29,9 @@ slot, a one-line reason, and duration and cost estimates. No coordinates, addres
    - **Radius:** half the diagonal of the destination's bounding box (from the geocoder, when
      the user picked it), times 1.15, between 60 and 400 km. Older trips whose destination is a
      whole country use 250 km; any other destination uses 60 km.
+   - **Area hint:** when the AI's area for a stop ("Byblos") is itself found inside the
+     destination, the search is centred there with a town-sized radius (its size times 1.5,
+     8 to 60 km), so a same-named place in another town is not picked.
 3. If OpenStreetMap has no acceptable match, ask **Wikidata** (labels and aliases in many
    languages, coordinates from property P625). A matched alias counts for the name check.
 4. Otherwise drop the suggestion and list it in the trip's grounding report, which the UI shows.

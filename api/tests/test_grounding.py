@@ -74,7 +74,12 @@ async def test_falls_back_to_the_destination_when_the_area_is_wrong() -> None:
     found = await find_place(geocoder, "Time Out Market", "Baixa", LISBON, "en")
 
     assert found is not None
-    assert geocoder.queries == ["Time Out Market, Baixa", "Time Out Market, Lisbon"]
+    # The area hint is looked up first; unknown, so the search covers the whole destination.
+    assert geocoder.queries == [
+        "Baixa, Lisbon",
+        "Time Out Market, Baixa",
+        "Time Out Market, Lisbon",
+    ]
 
 
 def _ai_day(stops: list[dict[str, Any]]) -> dict[str, Any]:

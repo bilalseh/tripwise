@@ -245,3 +245,38 @@ async def test_the_closest_name_wins_over_a_bus_stop_that_mentions_it() -> None:
 
 def test_hyphen_look_alikes_are_normalised() -> None:
     assert name_variants("Souk al\u2011Tawileh") == ["Souk al-Tawileh"]
+
+
+async def test_the_area_hint_keeps_same_named_places_elsewhere_out() -> None:
+    lebanon = Destination(
+        name="Lebanon",
+        display_name="Lebanon",
+        country="Lebanon",
+        country_code="lb",
+        location=GeoPoint(lat=33.87, lng=35.86),
+        days=2,
+    )
+    byblos_area = PlaceResult(
+        place=Place(
+            name="Byblos",
+            address="Jbeil, Lebanon",
+            location=GeoPoint(lat=34.12, lng=35.65),
+            source=PlaceSource.PHOTON,
+        ),
+        kind=PlaceKind.AREA,
+        radius_km=3,
+    )
+    elsewhere = poi("St. John the Baptist Church", 33.98, 35.70)  # Ashqout, about 16 km away
+    in_byblos = poi("Church of St. John the Baptist", 34.1212, 35.6464)
+    osm = TableGeocoder(
+        "osm",
+        {
+            "Byblos, Lebanon": [byblos_area],
+            "St. John the Baptist Church, Byblos": [elsewhere, in_byblos],
+        },
+    )
+
+    found = await find_place(osm, "St. John the Baptist Church", "Byblos", lebanon, "en")
+
+    assert found is not None
+    assert found.place.location.lat == 34.1212

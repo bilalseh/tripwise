@@ -17,7 +17,7 @@ from tripwise_api.planning.ai_models import AiStop
 from tripwise_api.planning.names import name_variants, names_match, similarity
 from tripwise_api.schemas.places import PlaceKind, PlaceResult
 from tripwise_api.schemas.trip import Stop
-from tripwise_api.schemas.trip_request import Destination
+from tripwise_api.schemas.trip_request import Destination, GeoPoint
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +26,8 @@ CITY_KM = 60.0
 # A whole country picked as the destination, when its size is unknown (older trips).
 COUNTRY_KM = 250.0
 MAX_KM = 400.0
+# Around the AI's area hint ("Byblos"), when that hint is a known place in the destination.
+TOWN_KM = 8.0
 # Searches per suggestion and lookup, so invented names cannot burn through rate limits.
 QUERIES_PER_LOOKUP = 4
 
@@ -58,7 +60,7 @@ def _as_list(lookups: Lookups) -> list[Geocoder]:
 
 
 def _pick(
-    results: Iterable[PlaceResult], wanted: Sequence[str], destination: Destination, radius: float
+    results: Iterable[PlaceResult], wanted: Sequence[str], center: GeoPoint, radius: float
 ) -> PlaceResult | None:
     """The acceptable result whose name is closest to the suggestion (a bus stop named "to
     Martyrs Square" must not beat the square itself)."""
@@ -69,7 +71,7 @@ def _pick(
         names = [result.place.name, *([result.also_known_as] if result.also_known_as else [])]
         if not any(names_match(name, found) for name in wanted for found in names):
             continue
-        if haversine_km(result.place.location, destination.location) > radius:
+        if haversine_km(result.place.location, center) > radius:
             continue
         score = max(similarity(name, found) for name in wanted for found in names)
         if best is None or score > best[0]:
@@ -88,18 +90,44 @@ def _queries(name: str, area: str, destination: Destination) -> list[tuple[str, 
     return pairs[:QUERIES_PER_LOOKUP]
 
 
+async def _anchor(
+    geocoder: Geocoder, area: str, destination: Destination, language: str
+) -> tuple[GeoPoint, float] | None:
+    """Centre and radius of the AI's area hint, if it names a known place in the destination.
+    Searching there keeps a same-named place in another town (a second "St John's Church")
+    from being picked. Hints that are not found leave the search on the whole destination."""
+    if not area or area.casefold() == destination.name.casefold():
+        return None
+    try:
+        results = await geocoder.search(
+            f"{area}, {destination.name}", destination.location, 3, language
+        )
+    except GeocodingError:
+        return None
+    limit = search_radius_km(destination)
+    for result in results:
+        inside = haversine_km(result.place.location, destination.location) <= limit
+        if inside and names_match(area, result.place.name):
+            size = result.radius_km
+            radius = TOWN_KM if size is None else max(TOWN_KM, min(size * 1.5, CITY_KM))
+            return result.place.location, radius
+    return None
+
+
 async def find_place(
     lookups: Lookups, name: str, area: str, destination: Destination, language: str
 ) -> PlaceResult | None:
-    radius = search_radius_km(destination)
-    for geocoder in _as_list(lookups):
+    geocoders = _as_list(lookups)
+    anchor = await _anchor(geocoders[0], area, destination, language) if geocoders else None
+    center, radius = anchor or (destination.location, search_radius_km(destination))
+    for geocoder in geocoders:
         for query, variant in _queries(name, area, destination):
             try:
-                results = await geocoder.search(query, destination.location, 5, language)
+                results = await geocoder.search(query, center, 5, language)
             except GeocodingError:
                 logger.warning("%s failed for a suggestion; trying the next lookup", geocoder.name)
                 break
-            picked = _pick(results, (name, variant), destination, radius)
+            picked = _pick(results, (name, variant), center, radius)
             if picked:
                 return picked
     return None
