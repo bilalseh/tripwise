@@ -43,7 +43,7 @@ class Settings(BaseSettings):
     # Nominatim allows one request per second per application; Cloud Run runs up to two
     # instances, so each waits two seconds between calls.
     nominatim_interval_seconds: float = 2.0
-    photon_interval_seconds: float = 0.25
+    photon_interval_seconds: float = 0.5
     osrm_interval_seconds: float = 1.0
     wikidata_interval_seconds: float = 0.3
 

@@ -52,7 +52,7 @@ day by time slot with nearest neighbour plus 2-opt, and trims days that exceed t
 
 | Service          | Use                                        | Policy kept                                                                                                                             |
 | ---------------- | ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------- |
-| Photon (komoot)  | Main geocoder for suggestions              | Fair use: 3 concurrent requests, 0.25 s spacing, 30-day cache                                                                           |
+| Photon (komoot)  | Main geocoder for suggestions              | Fair use: one request at a time, 0.5 s spacing, 30-day cache                                                                            |
 | Nominatim        | Fallback geocoder                          | 1 request/s per app: 2 s spacing per instance (max 2 instances), identifying User-Agent, cache, search on submit only (no autocomplete) |
 | OSRM demo server | Driving times for legs over 2 km           | 1 request/s, cached 14 days, straight-line estimate on any failure                                                                      |
 | OpenFreeMap      | Vector map tiles                           | No key, attribution shown by the map                                                                                                    |

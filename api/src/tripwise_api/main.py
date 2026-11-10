@@ -62,7 +62,8 @@ def _places(
     """Map search, the landmark lookup used when map search finds nothing, and routing."""
     if settings.places_provider == "fake":
         return FakeGeocoder(), None, NoRouter()
-    photon = PhotonGeocoder(http, Throttle(settings.photon_interval_seconds, concurrency=3))
+    # One request at a time: Photon answers bursts with 503 (fair use).
+    photon = PhotonGeocoder(http, Throttle(settings.photon_interval_seconds))
     nominatim = NominatimGeocoder(http, Throttle(settings.nominatim_interval_seconds))
     geocoder = FallbackGeocoder([CachedGeocoder(photon, cache), CachedGeocoder(nominatim, cache)])
     wikidata = WikidataGeocoder(http, Throttle(settings.wikidata_interval_seconds, concurrency=2))
