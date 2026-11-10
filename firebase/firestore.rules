@@ -1,0 +1,11 @@
+rules_version = '2';
+
+// Closed by default. Phase 2 opens users/{uid} to its owner; share links stay read-only
+// and go through the API. See docs/architecture.md.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
