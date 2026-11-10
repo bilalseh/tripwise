@@ -81,7 +81,7 @@ jobs:
       - run: pnpm test:rules
 
   e2e:
-    name: End-to-end (Playwright)
+    name: End-to-end and accessibility (Playwright, emulators)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -94,6 +94,14 @@ jobs:
         with:
           enable-cache: true
           cache-dependency-glob: api/uv.lock
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: actions/cache@v6
+        with:
+          path: ~/.cache/firebase/emulators
+          key: firebase-emulators-${{ hashFiles('pnpm-lock.yaml') }}
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @tripwise/e2e exec playwright install --with-deps chromium
       - run: pnpm test:e2e

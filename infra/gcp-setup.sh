@@ -64,6 +64,10 @@ if ! gcloud firestore databases describe --database='(default)' --project "$PROJ
   gcloud firestore databases create --location "$REGION" --project "$PROJECT_ID"
 fi
 
+echo "==> Firestore TTL: cached geocoding, routing and weather answers expire on their own"
+gcloud firestore fields ttls update expireAt --collection-group cache --enable-ttl \
+  --project "$PROJECT_ID" --quiet >/dev/null || echo "  (TTL policy already set or still applying)"
+
 echo "==> Artifact Registry repository with an image cleanup policy"
 if ! gcloud artifacts repositories describe "$AR_REPO" --location "$REGION" --project "$PROJECT_ID" >/dev/null 2>&1; then
   gcloud artifacts repositories create "$AR_REPO" \
