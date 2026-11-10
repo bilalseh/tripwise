@@ -17,6 +17,10 @@ class PlaceResult(ApiModel):
     kind: PlaceKind
     country: str | None = None
     country_code: str | None = None
+    radius_km: float | None = Field(default=None, description="Size of an area result")
+    also_known_as: str | None = Field(
+        default=None, description="Another name the search matched (for example a translation)"
+    )
 
 
 class PlaceSearchResponse(ApiModel):

@@ -25,6 +25,7 @@ from tripwise_api.integrations.geocoding import (
 from tripwise_api.integrations.routing import NoRouter, OsrmRouter, Router, TravelService
 from tripwise_api.integrations.throttle import Throttle
 from tripwise_api.integrations.weather import FakeWeather, OpenMeteo, WeatherSource
+from tripwise_api.integrations.wikidata import WikidataGeocoder
 from tripwise_api.logging_config import configure_logging
 from tripwise_api.rate_limit import RateLimiter
 from tripwise_api.repository import Repository
@@ -47,6 +48,7 @@ class Overrides:
     repository: Repository | None = None
     ai: AiClient | None = None
     geocoder: Geocoder | None = None
+    landmarks: Geocoder | None = None
     router: Router | None = None
     weather: WeatherSource | None = None
     billing: Billing | None = None
@@ -55,13 +57,18 @@ class Overrides:
     new_id: NewId = random_id
 
 
-def _places(settings: Settings, http: httpx.AsyncClient, cache: Cache) -> tuple[Geocoder, Router]:
+def _places(
+    settings: Settings, http: httpx.AsyncClient, cache: Cache
+) -> tuple[Geocoder, Geocoder | None, Router]:
+    """Map search, the landmark lookup used when map search finds nothing, and routing."""
     if settings.places_provider == "fake":
-        return FakeGeocoder(), NoRouter()
+        return FakeGeocoder(), None, NoRouter()
     photon = PhotonGeocoder(http, Throttle(settings.photon_interval_seconds, concurrency=3))
     nominatim = NominatimGeocoder(http, Throttle(settings.nominatim_interval_seconds))
     geocoder = FallbackGeocoder([CachedGeocoder(photon, cache), CachedGeocoder(nominatim, cache)])
-    return geocoder, OsrmRouter(http, Throttle(settings.osrm_interval_seconds))
+    wikidata = WikidataGeocoder(http, Throttle(settings.wikidata_interval_seconds, concurrency=2))
+    landmarks = CachedGeocoder(wikidata, cache)
+    return geocoder, landmarks, OsrmRouter(http, Throttle(settings.osrm_interval_seconds))
 
 
 def create_app(settings: Settings | None = None, overrides: Overrides | None = None) -> FastAPI:
@@ -84,8 +91,11 @@ def create_app(settings: Settings | None = None, overrides: Overrides | None = N
             http = await stack.enter_async_context(
                 httpx.AsyncClient(timeout=settings.ai_timeout_seconds)
             )
-            geocoder, router = _places(settings, http, cache)
+            geocoder, landmarks, router = _places(settings, http, cache)
             app.state.geocoder = fakes.geocoder or geocoder
+            # Grounding tries map search first, then the landmark lookup.
+            extra = fakes.landmarks or (None if fakes.geocoder else landmarks)
+            app.state.lookups = [app.state.geocoder, *([extra] if extra else [])]
             app.state.travel = TravelService(fakes.router or router, cache)
             app.state.weather = fakes.weather or (
                 FakeWeather() if settings.places_provider == "fake" else OpenMeteo(http, cache)

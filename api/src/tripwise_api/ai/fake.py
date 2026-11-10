@@ -115,6 +115,18 @@ def _edit(context: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _refill(context: dict[str, Any]) -> dict[str, Any]:
+    days = []
+    for entry in context["days"]:
+        n, area = entry["day"], entry["destination"]
+        stops = [
+            _stop(f"{_FOOD[i % 3]} {n}-{i + 1}", area, "food", "afternoon", 60, 15)
+            for i in range(max(1, entry["needed"]))
+        ]
+        days.append({"day": n, "stops": stops})
+    return {"days": days}
+
+
 class FakeProvider:
     name = "fake"
 
@@ -122,6 +134,8 @@ class FakeProvider:
         context = read_context(request.prompt)
         if request.task == "itinerary":
             return json.dumps(_itinerary(context))
+        if request.task == "itinerary_refill":
+            return json.dumps(_refill(context))
         if request.task == "day_edit":
             return json.dumps(_edit(context))
         raise ProviderError(self.name, FailureKind.REJECTED, f"unknown task {request.task}")

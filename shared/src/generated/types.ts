@@ -94,6 +94,10 @@ export interface Destination {
   country: string | null;
   countryCode: string | null;
   location: GeoPoint;
+  /**
+   * Half the diagonal of its area, from the geocoder
+   */
+  radiusKm: number | null;
   days: number;
 }
 
@@ -242,6 +246,14 @@ export interface PlaceResult {
   kind: PlaceKind;
   country: string | null;
   countryCode: string | null;
+  /**
+   * Size of an area result
+   */
+  radiusKm: number | null;
+  /**
+   * Another name the search matched (for example a translation)
+   */
+  alsoKnownAs: string | null;
 }
 
 export interface PlaceSearchResponse {
@@ -252,7 +264,7 @@ export interface PlaceSearchResponse {
 /**
  * Where the coordinates and address came from. Never the AI.
  */
-export type PlaceSource = 'nominatim' | 'photon' | 'seed' | 'fake';
+export type PlaceSource = 'nominatim' | 'photon' | 'wikidata' | 'seed' | 'fake';
 
 /**
  * Settings the user chooses. Language also sets the language the AI writes in.

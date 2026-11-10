@@ -4,7 +4,7 @@ from tripwise_api.auth import CurrentUser
 from tripwise_api.dependencies import (
     AiDep,
     ClockDep,
-    GeocoderDep,
+    LookupsDep,
     NewIdDep,
     RepositoryDep,
     SettingsDep,
@@ -24,7 +24,7 @@ async def ai_edit_day(
     user: CurrentUser,
     repository: RepositoryDep,
     ai: AiDep,
-    geocoder: GeocoderDep,
+    lookups: LookupsDep,
     clock: ClockDep,
     settings: SettingsDep,
     new_id: NewIdDep,
@@ -40,5 +40,5 @@ async def ai_edit_day(
         )
     async with metered_ai(repository, user, clock, settings) as language:
         return await propose_edit(
-            ai, geocoder, trip.request, body.action, body.day_index, body.day, language, new_id
+            ai, lookups, trip.request, body.action, body.day_index, body.day, language, new_id
         )

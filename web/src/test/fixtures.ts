@@ -54,6 +54,7 @@ export function trip(overrides: Partial<Trip> = {}): Trip {
           country: 'Portugal',
           countryCode: 'pt',
           location: { lat: 38.72, lng: -9.14 },
+          radiusKm: null,
           days: 2,
         },
       ],

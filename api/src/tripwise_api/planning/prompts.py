@@ -106,6 +106,35 @@ def generate_prompt(
     )
 
 
+REFILL = """Some places you suggested could not be found on OpenStreetMap: {failed}.
+Suggest replacements for the days listed below, exactly the number of stops each day needs.
+Use real, currently operating places under the short name most maps use (no subtitles or
+taglines). Do not repeat places already planned or the ones that were not found.
+
+{marker}
+{context}"""
+
+
+def refill_prompt(
+    request: TripRequest, needed: dict[int, int], failed: list[str], planned: list[str]
+) -> str:
+    """`needed` maps 0-based trip days to the number of replacement stops they need."""
+    days = [
+        {
+            "day": index + 1,
+            "destination": request.destinations[request.destination_for_day(index)].name,
+            "needed": count,
+        }
+        for index, count in sorted(needed.items())
+    ]
+    context = {"trip": _request_context(request), "days": days, "alreadyPlanned": planned[:80]}
+    return REFILL.format(
+        failed=", ".join(failed[:30]),
+        marker=CONTEXT_MARKER,
+        context=json.dumps(context, ensure_ascii=False, indent=1),
+    )
+
+
 def edit_prompt(request: TripRequest, action: EditAction, day: Day) -> str:
     stops = [
         {

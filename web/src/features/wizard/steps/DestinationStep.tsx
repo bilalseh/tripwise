@@ -17,6 +17,7 @@ function toDestination(result: PlaceResult): Picked {
     displayName: result.place.address,
     country: result.country ?? null,
     countryCode: result.countryCode ?? null,
+    radiusKm: result.radiusKm ?? null,
     location: result.place.location,
   };
 }

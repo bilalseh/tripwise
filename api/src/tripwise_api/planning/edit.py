@@ -8,10 +8,10 @@ only new suggestions are geocoded.
 from tripwise_api.ai.client import AiClient
 from tripwise_api.domain.ordering import order_stops
 from tripwise_api.domain.pace import trim_day
-from tripwise_api.integrations.geocoding import Geocoder
 from tripwise_api.planning.ai_models import AiDayEdit, AiStop
 from tripwise_api.planning.grounding import (
     GroundingLog,
+    Lookups,
     NewId,
     ground_many,
     keep_found,
@@ -42,7 +42,7 @@ def _updated(existing: Stop, suggestion: AiStop) -> Stop:
 
 async def propose_edit(
     ai: AiClient,
-    geocoder: Geocoder,
+    lookups: Lookups,
     request: TripRequest,
     action: EditAction,
     day_index: int,
@@ -75,7 +75,7 @@ async def propose_edit(
     fresh = [s for s in proposal.stops if s.keep_id not in existing]
     fresh_rain = list(proposal.rain_plan) if action is EditAction.RAINY else []
     grounded = await ground_many(
-        geocoder, [(s, destination) for s in (*fresh, *fresh_rain)], language.value, new_id
+        lookups, [(s, destination) for s in (*fresh, *fresh_rain)], language.value, new_id
     )
     log = GroundingLog()
     seen = {place_identity(s) for s in day.stops} | {place_identity(s) for s in day.rain_plan}

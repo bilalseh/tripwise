@@ -4,7 +4,7 @@ from tripwise_api.auth import CurrentUser
 from tripwise_api.dependencies import (
     AiDep,
     ClockDep,
-    GeocoderDep,
+    LookupsDep,
     NewIdDep,
     RepositoryDep,
     SettingsDep,
@@ -158,7 +158,7 @@ async def generate_days(
     user: CurrentUser,
     repository: RepositoryDep,
     ai: AiDep,
-    geocoder: GeocoderDep,
+    lookups: LookupsDep,
     clock: ClockDep,
     settings: SettingsDep,
     new_id: NewIdDep,
@@ -173,7 +173,7 @@ async def generate_days(
     locked = [[s for s in d.stops if s.locked] for d in trip.days[first : first + count]]
     async with metered_ai(repository, user, clock, settings) as language:
         batch = await plan_days(
-            ai, geocoder, trip.request, first, count, [*before, *after], language, new_id, locked
+            ai, lookups, trip.request, first, count, [*before, *after], language, new_id, locked
         )
     days = [*before, *batch.days, *after]
     updated = trip.model_copy(

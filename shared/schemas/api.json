@@ -323,6 +323,20 @@
         "location": {
           "$ref": "#/$defs/GeoPoint"
         },
+        "radiusKm": {
+          "anyOf": [
+            {
+              "maximum": 3000,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Half the diagonal of its area, from the geocoder"
+        },
         "days": {
           "maximum": 14,
           "minimum": 1,
@@ -335,6 +349,7 @@
         "country",
         "countryCode",
         "location",
+        "radiusKm",
         "days"
       ],
       "title": "Destination",
@@ -877,13 +892,39 @@
             }
           ],
           "default": null
+        },
+        "radiusKm": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Size of an area result"
+        },
+        "alsoKnownAs": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Another name the search matched (for example a translation)"
         }
       },
       "required": [
         "place",
         "kind",
         "country",
-        "countryCode"
+        "countryCode",
+        "radiusKm",
+        "alsoKnownAs"
       ],
       "title": "PlaceResult",
       "type": "object"
@@ -913,6 +954,7 @@
       "enum": [
         "nominatim",
         "photon",
+        "wikidata",
         "seed",
         "fake"
       ],

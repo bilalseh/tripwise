@@ -75,9 +75,11 @@ flowchart TD
   A["AI reply (JSON)"] --> B{"Pydantic schema"}
   B -- invalid --> R["One repair retry with the errors"] --> B
   B -- "still invalid" --> X["Next provider, or a clear 'try again'"]
-  B -- valid --> C["Geocode every place name near the destination"]
-  C -- "not found / city-level / > 60 km" --> D["Dropped and listed to the user"]
-  C -- found --> E["Real name, address, coordinates from OpenStreetMap"]
+  B -- valid --> C["Search OpenStreetMap (simpler names too), then Wikidata"]
+  C -- "not found / city-level / other name / outside the destination" --> D["Dropped and listed"]
+  D -- "day two or more stops short" --> H["One AI replacement round, grounded the same way"]
+  C -- found --> E["Real name, address, coordinates from the lookup"]
+  H --> E
   E --> F["Cluster by area, order, trim to pace (locked and must-see kept)"]
   F --> G["Days shown with estimates labelled as estimates"]
 ```

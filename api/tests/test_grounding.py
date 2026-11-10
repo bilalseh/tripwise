@@ -13,7 +13,7 @@ from tripwise_api.ai.types import AiUnavailableError
 from tripwise_api.integrations.fake_geocoder import FakeGeocoder
 from tripwise_api.planning.ai_models import AiStop
 from tripwise_api.planning.generate import plan_days
-from tripwise_api.planning.grounding import MAX_KM, find_place
+from tripwise_api.planning.grounding import CITY_KM, find_place
 from tripwise_api.schemas.places import PlaceKind, PlaceResult
 from tripwise_api.schemas.profile import Language
 from tripwise_api.schemas.trip import Day, Place, PlaceSource, Slot, StopCategory
@@ -63,7 +63,7 @@ async def test_city_level_matches_and_far_away_namesakes_are_rejected() -> None:
     geocoder = TableGeocoder({"Tower": [area, far]})
 
     assert await find_place(geocoder, "Tower", "", LISBON, "en") is None
-    assert MAX_KM < 100
+    assert CITY_KM < 100
 
 
 async def test_falls_back_to_the_destination_when_the_area_is_wrong() -> None:

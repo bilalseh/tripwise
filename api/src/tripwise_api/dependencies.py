@@ -43,6 +43,8 @@ NewIdDep = Annotated[NewId, Depends(_state("new_id", object))]
 AiDep = Annotated[AiClient, Depends(get_ai)]
 SettingsDep = Annotated[Settings, Depends(get_settings)]
 GeocoderDep = Annotated[Geocoder, Depends(_state("geocoder", object))]
+# Grounding lookups in order: map search, then the landmark lookup when configured.
+LookupsDep = Annotated[list[Geocoder], Depends(_state("lookups", list))]
 TravelDep = Annotated[TravelService, Depends(_state("travel", TravelService))]
 WeatherDep = Annotated[WeatherSource, Depends(_state("weather", object))]
 BillingDep = Annotated[Billing | None, Depends(_state("billing", object))]

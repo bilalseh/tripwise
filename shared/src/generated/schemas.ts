@@ -17,6 +17,7 @@ export const TripRequestSchema = z
             location: z
               .object({ lat: z.number().gte(-90).lte(90), lng: z.number().gte(-180).lte(180) })
               .strict(),
+            radiusKm: z.union([z.number().gte(0).lte(3000), z.null()]).default(null),
             days: z.number().int().gte(1).lte(14),
           })
           .strict(),
@@ -79,6 +80,7 @@ export const CreateTripRequestSchema = z
                 location: z
                   .object({ lat: z.number().gte(-90).lte(90), lng: z.number().gte(-180).lte(180) })
                   .strict(),
+                radiusKm: z.union([z.number().gte(0).lte(3000), z.null()]).default(null),
                 days: z.number().int().gte(1).lte(14),
               })
               .strict(),
@@ -153,7 +155,7 @@ export const SaveTripRequestSchema = z
                           })
                           .strict(),
                         osmId: z.union([z.string().max(40), z.null()]).default(null),
-                        source: z.enum(['nominatim', 'photon', 'seed', 'fake']),
+                        source: z.enum(['nominatim', 'photon', 'wikidata', 'seed', 'fake']),
                       })
                       .strict(),
                     category: z.enum([
@@ -192,7 +194,7 @@ export const SaveTripRequestSchema = z
                           })
                           .strict(),
                         osmId: z.union([z.string().max(40), z.null()]).default(null),
-                        source: z.enum(['nominatim', 'photon', 'seed', 'fake']),
+                        source: z.enum(['nominatim', 'photon', 'wikidata', 'seed', 'fake']),
                       })
                       .strict(),
                     category: z.enum([
@@ -275,7 +277,7 @@ export const AiEditRequestSchema = z
                       })
                       .strict(),
                     osmId: z.union([z.string().max(40), z.null()]).default(null),
-                    source: z.enum(['nominatim', 'photon', 'seed', 'fake']),
+                    source: z.enum(['nominatim', 'photon', 'wikidata', 'seed', 'fake']),
                   })
                   .strict(),
                 category: z.enum([
@@ -314,7 +316,7 @@ export const AiEditRequestSchema = z
                       })
                       .strict(),
                     osmId: z.union([z.string().max(40), z.null()]).default(null),
-                    source: z.enum(['nominatim', 'photon', 'seed', 'fake']),
+                    source: z.enum(['nominatim', 'photon', 'wikidata', 'seed', 'fake']),
                   })
                   .strict(),
                 category: z.enum([

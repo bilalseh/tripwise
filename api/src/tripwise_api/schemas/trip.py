@@ -41,6 +41,7 @@ class PlaceSource(StrEnum):
 
     NOMINATIM = "nominatim"
     PHOTON = "photon"
+    WIKIDATA = "wikidata"
     SEED = "seed"
     FAKE = "fake"
 

@@ -35,6 +35,7 @@ describe('wizard helpers', () => {
         displayName: 'A',
         country: null,
         countryCode: null,
+        radiusKm: null,
         location: { lat: 0, lng: 0 },
       })),
       dateMode: 'days' as const,

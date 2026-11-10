@@ -12,6 +12,7 @@ from typing import Any, Protocol
 
 import httpx
 
+from tripwise_api.domain.geo import haversine_km
 from tripwise_api.integrations.cache import Cache, cache_key
 from tripwise_api.integrations.throttle import Throttle
 from tripwise_api.schemas.places import PlaceKind, PlaceResult
@@ -62,6 +63,15 @@ class Geocoder(Protocol):
     ) -> list[PlaceResult]: ...
 
 
+def radius_from_box(south: float, north: float, west: float, east: float) -> float | None:
+    """Half the diagonal of a bounding box, in km: how far an area reaches from its centre."""
+    try:
+        corner, opposite = GeoPoint(lat=south, lng=west), GeoPoint(lat=north, lng=east)
+    except ValueError:
+        return None
+    return round(haversine_km(corner, opposite) / 2, 1)
+
+
 def _kind(*types: str | None) -> PlaceKind:
     return PlaceKind.AREA if any(t in AREA_TYPES for t in types if t) else PlaceKind.POI
 
@@ -74,6 +84,28 @@ async def _get_json(http: httpx.AsyncClient, url: str, params: dict[str, Any]) -
     if response.is_error:
         raise GeocodingError(f"HTTP {response.status_code}")
     return response.json()
+
+
+def _photon_radius(extent: Any) -> float | None:
+    """Photon's extent is [west, north, east, south]."""
+    if not (isinstance(extent, list) and len(extent) == 4):
+        return None
+    try:
+        west, north, east, south = (float(v) for v in extent)
+    except (TypeError, ValueError):
+        return None
+    return radius_from_box(south, north, west, east)
+
+
+def _nominatim_radius(box: Any) -> float | None:
+    """Nominatim's boundingbox is [south, north, west, east], as strings."""
+    if not (isinstance(box, list) and len(box) == 4):
+        return None
+    try:
+        south, north, west, east = (float(v) for v in box)
+    except (TypeError, ValueError):
+        return None
+    return radius_from_box(south, north, west, east)
 
 
 class PhotonGeocoder:
@@ -121,6 +153,7 @@ class PhotonGeocoder:
             kind=_kind(props.get("type"), props.get("osm_value")),
             country=props.get("country"),
             country_code=str(props.get("countrycode", "")).lower() or None,
+            radius_km=_photon_radius(props.get("extent")),
         )
 
 
@@ -171,6 +204,7 @@ class NominatimGeocoder:
             kind=_kind(item.get("addresstype"), item.get("type")),
             country=address.get("country"),
             country_code=address.get("country_code"),
+            radius_km=_nominatim_radius(item.get("boundingbox")),
         )
 
 

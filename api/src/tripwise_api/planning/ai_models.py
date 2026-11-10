@@ -52,3 +52,14 @@ class AiItinerary(AiModel):
 class AiDayEdit(AiModel):
     summary: Sentence = Field(description="What changed, for the user, one or two sentences")
     day: AiDay
+
+
+class AiRefillDay(AiModel):
+    day: int = Field(ge=1, le=14, description="Trip day number, as given")
+    stops: list[AiStop] = Field(min_length=1, max_length=8)
+
+
+class AiRefill(AiModel):
+    """Replacements for suggestions that could not be found on the map."""
+
+    days: list[AiRefillDay] = Field(min_length=1, max_length=4)

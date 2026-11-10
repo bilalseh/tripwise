@@ -1,17 +1,19 @@
 """Generate a batch of itinerary days.
 
 AI JSON -> Pydantic validation (one repair retry) -> geocoding of every suggestion -> drop
-unresolved and duplicate places -> regroup by area -> order -> trim to pace -> Days.
+unresolved and duplicate places -> one replacement round for short days -> regroup by area ->
+order -> trim to pace -> Days.
 """
 
-from collections.abc import Sequence
+import time
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 
 from tripwise_api.ai.client import AiClient
-from tripwise_api.integrations.geocoding import Geocoder
 from tripwise_api.planning.ai_models import AiDay, AiItinerary, AiStop
 from tripwise_api.planning.grounding import (
     GroundingLog,
+    Lookups,
     NewId,
     ground_many,
     keep_found,
@@ -20,9 +22,14 @@ from tripwise_api.planning.grounding import (
 )
 from tripwise_api.planning.layout import DraftDay, finish_day, regroup
 from tripwise_api.planning.prompts import generate_prompt, system_prompt
+from tripwise_api.planning.refill import refill_days
 from tripwise_api.schemas.profile import Language
 from tripwise_api.schemas.trip import Day, DayEstimates, GroundingReport, Stop
 from tripwise_api.schemas.trip_request import TripRequest
+
+# The replacement round only runs if the first answer came back within this time, so the
+# whole request still fits Firebase Hosting's 60-second limit.
+REFILL_WITHIN_SECONDS = 25.0
 
 
 @dataclass(frozen=True, slots=True)
@@ -49,7 +56,7 @@ def _estimates(day: AiDay) -> DayEstimates:
 
 async def plan_days(
     ai: AiClient,
-    geocoder: Geocoder,
+    lookups: Lookups,
     request: TripRequest,
     first_day: int,
     count: int,
@@ -57,10 +64,12 @@ async def plan_days(
     language: Language,
     new_id: NewId,
     locked: Sequence[Sequence[Stop]] = (),
+    clock: Callable[[], float] = time.monotonic,
 ) -> PlannedBatch:
     """Plan days [first_day, first_day + count). `existing` are the trip's other days (their
     places are not repeated); `locked[i]` are stops the user locked on day first_day + i, which
     stay on that day."""
+    started = clock()
     must_see = remaining_must_see(
         request, [*existing, *(Day(destination_index=0, stops=list(k)) for k in locked)]
     )
@@ -90,7 +99,7 @@ async def plan_days(
         for stop in (*day.stops, *day.rain_plan)
     ]
     grounded = await ground_many(
-        geocoder,
+        lookups,
         [(stop, request.destinations[destinations[offset]]) for stop, offset in wanted],
         language.value,
         new_id,
@@ -108,6 +117,21 @@ async def plan_days(
         drafts.append(DraftDay(title=day.title, stops=[*pinned, *stops]))
         found_rain = [by_suggestion[id(s)] for s in day.rain_plan]
         rain.append(present(keep_found(day.rain_plan, found_rain, log, seen)))
+
+    if clock() - started < REFILL_WITHIN_SECONDS:
+        found_names = [s.place.name for d in drafts for s in d.stops]
+        await refill_days(
+            ai,
+            lookups,
+            request,
+            first_day,
+            drafts,
+            log,
+            seen,
+            [*planned, *found_names],
+            language,
+            new_id,
+        )
 
     must_see_ids = frozenset(
         stop.id

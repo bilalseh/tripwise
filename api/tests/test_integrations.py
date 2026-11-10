@@ -19,6 +19,7 @@ from tripwise_api.integrations.geocoding import (
 from tripwise_api.integrations.routing import OsrmRouter, TravelService
 from tripwise_api.integrations.throttle import Throttle
 from tripwise_api.integrations.weather import OpenMeteo, last_year, weather_kind
+from tripwise_api.integrations.wikidata import WikidataGeocoder
 from tripwise_api.schemas.essentials import WeatherKind
 from tripwise_api.schemas.places import PlaceKind, PlaceResult, TravelSource
 from tripwise_api.schemas.trip import PlaceSource
@@ -251,3 +252,61 @@ async def test_typical_weather_reads_last_year_and_maps_dates_forward() -> None:
     assert [d.date for d in days] == [date(2027, 3, 1), date(2027, 3, 2)]
     assert days[1].precipitation == 4.2
     assert days[1].code == 61
+
+
+async def test_area_results_carry_their_size() -> None:
+    country = {
+        "geometry": {"coordinates": [35.86, 33.87]},
+        "properties": {"name": "Lebanon", "type": "country", "extent": [35.1, 34.69, 36.62, 33.05]},
+    }
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json={"features": [country]})
+
+    async with http_with(handler) as http:
+        [lebanon] = await PhotonGeocoder(http, free_throttle()).search("Lebanon", None, 1, "en")
+
+    assert lebanon.kind is PlaceKind.AREA
+    assert lebanon.radius_km is not None
+    assert 100 < lebanon.radius_km < 130
+
+
+async def test_wikidata_finds_landmarks_with_coordinates_and_aliases() -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.params["action"] == "wbsearchentities":
+            assert request.url.params["search"] == "Monument to the Discoveries"
+            hits = [
+                {
+                    "id": "Q1",
+                    "label": "Padrão dos Descobrimentos",
+                    "description": "monument in Lisbon, Portugal",
+                    "match": {"text": "Monument to the Discoveries"},
+                },
+                {"id": "Q2", "label": "Belém", "description": "parish in Lisbon, Portugal"},
+                {"id": "Q3", "label": "No coordinates", "description": "concept"},
+            ]
+            return httpx.Response(200, json={"search": hits})
+        coords = {"latitude": 38.6936, "longitude": -9.2057}
+        claim = {"P625": [{"mainsnak": {"datavalue": {"value": coords}}}]}
+        return httpx.Response(
+            200,
+            json={
+                "entities": {"Q1": {"claims": claim}, "Q2": {"claims": claim}, "Q3": {"claims": {}}}
+            },
+        )
+
+    async with http_with(handler) as http:
+        results = await WikidataGeocoder(http, free_throttle()).search(
+            "Monument to the Discoveries, Lisbon", None, 5, "en"
+        )
+
+    monument, parish = results
+    assert monument.place.source is PlaceSource.WIKIDATA
+    assert (
+        monument.kind is PlaceKind.POI
+    )
+    assert (
+        monument.also_known_as == "Monument to the Discoveries"
+    )
+    assert monument.place.address == "Monument in Lisbon, Portugal"
+    assert parish.kind is PlaceKind.AREA

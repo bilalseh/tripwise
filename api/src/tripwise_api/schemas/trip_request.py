@@ -69,6 +69,9 @@ class Destination(ApiModel):
     country: Annotated[str, StringConstraints(max_length=80)] | None = None
     country_code: Annotated[str, StringConstraints(pattern=r"^[a-z]{2}$")] | None = None
     location: GeoPoint
+    radius_km: float | None = Field(
+        default=None, ge=0, le=3000, description="Half the diagonal of its area, from the geocoder"
+    )
     days: int = Field(ge=1, le=MAX_TRIP_DAYS)
 
 

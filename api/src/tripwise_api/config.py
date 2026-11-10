@@ -45,6 +45,7 @@ class Settings(BaseSettings):
     nominatim_interval_seconds: float = 2.0
     photon_interval_seconds: float = 0.25
     osrm_interval_seconds: float = 1.0
+    wikidata_interval_seconds: float = 0.3
 
     # Per-user request limits per minute (in-process, per instance).
     rate_limit_per_minute: int = 120
