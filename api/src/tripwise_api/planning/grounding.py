@@ -15,7 +15,7 @@ from dataclasses import dataclass, field
 from tripwise_api.domain.geo import haversine_km
 from tripwise_api.integrations.geocoding import Geocoder, GeocodingError
 from tripwise_api.planning.ai_models import AiStop
-from tripwise_api.planning.names import name_variants, names_match, similarity
+from tripwise_api.planning.names import name_variants, names_match, normalise, similarity
 from tripwise_api.schemas.places import PlaceKind, PlaceResult
 from tripwise_api.schemas.trip import Stop
 from tripwise_api.schemas.trip_request import Destination, GeoPoint
@@ -74,8 +74,16 @@ def _as_list(lookups: Lookups) -> list[Geocoder]:
     return list(lookups) if isinstance(lookups, Sequence) else [lookups]
 
 
+def _in_area(result: PlaceResult, area: str) -> bool:
+    """Whether the result's own address (not its name) mentions the AI's area hint."""
+    address = result.place.address.removeprefix(result.place.name)
+    return bool(area) and normalise(area) in normalise(address)
+
+
 def _pick(
-    results: Iterable[PlaceResult], wanted: Sequence[str], center: GeoPoint, radius: float
+    results: Iterable[PlaceResult],
+    wanted: Sequence[str],
+    close_enough: Callable[[PlaceResult], bool],
 ) -> PlaceResult | None:
     """The acceptable result whose name is closest to the suggestion (a bus stop named "to
     Martyrs Square" must not beat the square itself)."""
@@ -86,7 +94,7 @@ def _pick(
         names = [result.place.name, *([result.also_known_as] if result.also_known_as else [])]
         if not any(names_match(name, found) for name in wanted for found in names):
             continue
-        if haversine_km(result.place.location, center) > radius:
+        if not close_enough(result):
             continue
         score = max(similarity(name, found) for name in wanted for found in names)
         if best is None or score > best[0]:
@@ -134,7 +142,17 @@ async def find_place(
 ) -> PlaceResult | None:
     geocoders = _as_list(lookups)
     anchor = await _anchor(geocoders[0], area, destination, language) if geocoders else None
-    center, radius = anchor or (destination.location, search_radius_km(destination))
+    limit = search_radius_km(destination)
+    center, radius = anchor or (destination.location, limit)
+
+    def close_enough(result: PlaceResult) -> bool:
+        """Near the anchor, or in the hinted area when the anchor is a same-named town elsewhere
+        ("Ueno" is also a town 100 km from Tokyo's Ueno)."""
+        if haversine_km(result.place.location, center) <= radius:
+            return True
+        inside = haversine_km(result.place.location, destination.location) <= limit
+        return inside and _in_area(result, area)
+
     for geocoder in geocoders:
         for query, variant in _queries(name, area, destination):
             try:
@@ -142,7 +160,7 @@ async def find_place(
             except GeocodingError:
                 logger.warning("%s failed for a suggestion; trying the next lookup", geocoder.name)
                 break
-            picked = _pick(results, (name, variant), center, radius)
+            picked = _pick(results, (name, variant), close_enough)
             if picked:
                 return picked
     return None

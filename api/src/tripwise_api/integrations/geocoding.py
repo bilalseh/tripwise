@@ -68,9 +68,10 @@ def radius_from_box(south: float, north: float, west: float, east: float) -> flo
     return round(haversine_km(corner, opposite) / 2, 1)
 
 
-# Bus stops and platforms are often named after the sight they serve; they are not stops.
+# Stations and bus stops are often named after the sight they serve; they are not stops.
 TRANSIT = frozenset(
     [
+        "station",
         "bus_stop",
         "platform",
         "stop_position",

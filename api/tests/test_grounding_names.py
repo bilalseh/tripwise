@@ -286,6 +286,55 @@ async def test_the_area_hint_keeps_same_named_places_elsewhere_out() -> None:
     assert found.place.location.lat == 34.1212
 
 
+async def test_a_same_named_town_elsewhere_does_not_hide_the_real_place() -> None:
+    japan = Destination(
+        name="Japan",
+        display_name="Japan",
+        country="Japan",
+        country_code="jp",
+        location=GeoPoint(lat=36.57, lng=139.24),
+        radius_km=1500,
+        days=2,
+    )
+    wrong_town = PlaceResult(
+        place=Place(
+            name="Ueno",
+            address="Ueno, Gunma, Japan",
+            location=GeoPoint(lat=36.08, lng=138.78),
+            source=PlaceSource.NOMINATIM,
+        ),
+        kind=PlaceKind.AREA,
+        radius_km=12,
+    )
+
+    def at(name: str, lat: float, lng: float, address: str) -> PlaceResult:
+        place = poi(name, lat, lng).place.model_copy(update={"address": address})
+        return PlaceResult(place=place, kind=PlaceKind.POI)
+
+    museum = at(
+        "Tokyo National Museum",
+        35.7188,
+        139.7765,
+        "Tokyo National Museum, 9, Ueno Park, Taito, Tokyo, Japan",
+    )
+    namesake = at("Ueno Museum", 34.77, 136.13, "Ueno Museum, Iga, Mie, Japan")
+    osm = TableGeocoder(
+        "osm",
+        {
+            "Ueno, Japan": [wrong_town],
+            "Tokyo National Museum, Ueno": [museum],
+            "Ueno Museum, Ueno": [namesake],
+        },
+    )
+
+    found = await find_place(osm, "Tokyo National Museum", "Ueno", japan, "en")
+    missing = await find_place(osm, "Ueno Museum", "Ueno", japan, "en")
+
+    assert found is not None
+    assert found.place.name == "Tokyo National Museum"
+    assert missing is None  # its name mentions the area, but its address does not
+
+
 async def test_places_not_checked_before_the_deadline_are_reported_apart() -> None:
     class SlowGeocoder:
         name = "slow"
