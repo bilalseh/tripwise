@@ -2,6 +2,7 @@ import secrets
 from collections.abc import AsyncIterator
 from contextlib import AsyncExitStack, asynccontextmanager
 from dataclasses import dataclass
+from pathlib import Path
 
 import httpx
 from fastapi import FastAPI
@@ -15,12 +16,17 @@ from tripwise_api.config import Settings, apply_emulator_hosts, load_settings
 from tripwise_api.dependencies import Clock, NewId, utc_now
 from tripwise_api.integrations.cache import Cache, FirestoreCache, LayeredCache, MemoryCache
 from tripwise_api.integrations.fake_geocoder import FakeGeocoder
-from tripwise_api.integrations.geocoder_wrappers import CachedGeocoder, FallbackGeocoder
+from tripwise_api.integrations.geocoder_wrappers import (
+    CachedGeocoder,
+    FallbackGeocoder,
+    LocalFirstGeocoder,
+)
 from tripwise_api.integrations.geocoding import (
     Geocoder,
     NominatimGeocoder,
     PhotonGeocoder,
 )
+from tripwise_api.integrations.local_places import LocalPlaces
 from tripwise_api.integrations.routing import NoRouter, OsrmRouter, Router, TravelService
 from tripwise_api.integrations.throttle import Throttle
 from tripwise_api.integrations.weather import FakeWeather, OpenMeteo, WeatherSource
@@ -71,6 +77,14 @@ def _places(
     return geocoder, landmarks, OsrmRouter(http, Throttle(settings.osrm_interval_seconds))
 
 
+def _local_places(settings: Settings, fakes: Overrides) -> LocalPlaces | None:
+    """The local index, when this deployment has one and search is not faked."""
+    path = Path(settings.places_index_path)
+    if settings.places_provider == "fake" or fakes.geocoder or not path.is_file():
+        return None
+    return LocalPlaces(path)
+
+
 def create_app(settings: Settings | None = None, overrides: Overrides | None = None) -> FastAPI:
     """Build the app. Uvicorn calls this with no arguments (`--factory`); tests inject fakes."""
     settings = settings or load_settings()
@@ -92,10 +106,14 @@ def create_app(settings: Settings | None = None, overrides: Overrides | None = N
                 httpx.AsyncClient(timeout=settings.ai_timeout_seconds)
             )
             geocoder, landmarks, router = _places(settings, http, cache)
-            app.state.geocoder = fakes.geocoder or geocoder
-            # Grounding tries map search first, then the landmark lookup.
+            online = fakes.geocoder or geocoder
+            local = _local_places(settings, fakes)
+            if local:
+                stack.callback(local.close)
+            app.state.geocoder = LocalFirstGeocoder(local, online) if local else online
+            # Grounding tries the local index, then map search, then the landmark lookup.
             extra = fakes.landmarks or (None if fakes.geocoder else landmarks)
-            app.state.lookups = [app.state.geocoder, *([extra] if extra else [])]
+            app.state.lookups = [*([local] if local else []), online, *([extra] if extra else [])]
             app.state.travel = TravelService(fakes.router or router, cache)
             app.state.weather = fakes.weather or (
                 FakeWeather() if settings.places_provider == "fake" else OpenMeteo(http, cache)

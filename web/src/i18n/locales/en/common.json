@@ -77,7 +77,7 @@
     "features": {
       "map": {
         "title": "Real places on a map",
-        "body": "Addresses and coordinates come from OpenStreetMap, never from the AI. Places it cannot verify are left out and listed."
+        "body": "Addresses and coordinates come from Overture Maps and OpenStreetMap, never from the AI. Places it cannot verify are left out and listed."
       },
       "edit": {
         "title": "Edit by dragging",

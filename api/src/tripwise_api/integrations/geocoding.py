@@ -6,7 +6,7 @@ only on submit (never autocomplete), Nominatim spaced to one request per second 
 """
 
 import logging
-from typing import Any, Protocol
+from typing import Any, Protocol, runtime_checkable
 
 import httpx
 
@@ -57,6 +57,13 @@ class Geocoder(Protocol):
     async def search(
         self, query: str, near: GeoPoint | None, limit: int, language: str
     ) -> list[PlaceResult]: ...
+
+
+@runtime_checkable
+class RegionalGeocoder(Geocoder, Protocol):
+    """A geocoder that only knows some parts of the world."""
+
+    def covers(self, point: GeoPoint) -> bool: ...
 
 
 def radius_from_box(south: float, north: float, west: float, east: float) -> float | None:

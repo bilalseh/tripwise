@@ -155,7 +155,14 @@ export const SaveTripRequestSchema = z
                           })
                           .strict(),
                         osmId: z.union([z.string().max(40), z.null()]).default(null),
-                        source: z.enum(['nominatim', 'photon', 'wikidata', 'seed', 'fake']),
+                        source: z.enum([
+                          'nominatim',
+                          'photon',
+                          'overture',
+                          'wikidata',
+                          'seed',
+                          'fake',
+                        ]),
                       })
                       .strict(),
                     category: z.enum([
@@ -194,7 +201,14 @@ export const SaveTripRequestSchema = z
                           })
                           .strict(),
                         osmId: z.union([z.string().max(40), z.null()]).default(null),
-                        source: z.enum(['nominatim', 'photon', 'wikidata', 'seed', 'fake']),
+                        source: z.enum([
+                          'nominatim',
+                          'photon',
+                          'overture',
+                          'wikidata',
+                          'seed',
+                          'fake',
+                        ]),
                       })
                       .strict(),
                     category: z.enum([
@@ -277,7 +291,7 @@ export const AiEditRequestSchema = z
                       })
                       .strict(),
                     osmId: z.union([z.string().max(40), z.null()]).default(null),
-                    source: z.enum(['nominatim', 'photon', 'wikidata', 'seed', 'fake']),
+                    source: z.enum(['nominatim', 'photon', 'overture', 'wikidata', 'seed', 'fake']),
                   })
                   .strict(),
                 category: z.enum([
@@ -316,7 +330,7 @@ export const AiEditRequestSchema = z
                       })
                       .strict(),
                     osmId: z.union([z.string().max(40), z.null()]).default(null),
-                    source: z.enum(['nominatim', 'photon', 'wikidata', 'seed', 'fake']),
+                    source: z.enum(['nominatim', 'photon', 'overture', 'wikidata', 'seed', 'fake']),
                   })
                   .strict(),
                 category: z.enum([

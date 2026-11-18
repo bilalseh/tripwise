@@ -270,7 +270,7 @@ export interface PlaceSearchResponse {
 /**
  * Where the coordinates and address came from. Never the AI.
  */
-export type PlaceSource = 'nominatim' | 'photon' | 'wikidata' | 'seed' | 'fake';
+export type PlaceSource = 'nominatim' | 'photon' | 'overture' | 'wikidata' | 'seed' | 'fake';
 
 /**
  * Settings the user chooses. Language also sets the language the AI writes in.

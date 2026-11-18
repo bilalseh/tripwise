@@ -963,6 +963,7 @@
       "enum": [
         "nominatim",
         "photon",
+        "overture",
         "wikidata",
         "seed",
         "fake"

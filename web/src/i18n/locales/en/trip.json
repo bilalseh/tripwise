@@ -35,7 +35,7 @@
     "progress": "{{done}} of {{total}} days planned",
     "waiting": "The AI needs a short break. Trying again in about a minute.",
     "step1": "1. The AI suggests places for each day.",
-    "step2": "2. Each one is looked up on OpenStreetMap; anything not found is left out.",
+    "step2": "2. Each one is looked up in real map data; anything not found is left out.",
     "step3": "3. Stops are grouped by area and ordered to keep travel short.",
     "retry": "Try again",
     "seePlans": "See plans",
@@ -141,7 +141,7 @@
   },
   "grounding": {
     "title": "{{kept}} of {{suggested}} AI suggestions were matched to real places.",
-    "dropped": "Left out because they could not be found on OpenStreetMap: {{names}}.",
+    "dropped": "Left out because they could not be found in map data: {{names}}.",
     "trimmed": "Left out so days fit your pace: {{names}}.",
     "unchecked": "Not checked in time because map search was slow, so left out: {{names}}. Re-plan later to try again."
   },
@@ -177,7 +177,7 @@
     "hint": "In the print dialog, choose \"Save as PDF\" as the destination.",
     "mapAlt": "Map of every stop on the trip",
     "budget": "Budget (estimates)",
-    "footer": "Made with Tripwise. Places from OpenStreetMap; times, durations and costs are estimates. Check opening hours before you go."
+    "footer": "Made with Tripwise. Places from Overture Maps and OpenStreetMap; times, durations and costs are estimates. Check opening hours before you go."
   },
   "budget": {
     "estimate": "estimate",

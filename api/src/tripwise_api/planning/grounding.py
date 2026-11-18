@@ -1,6 +1,7 @@
 """Turn AI suggestions into real places, or drop them.
 
-A suggestion survives only if a lookup (OpenStreetMap first, then Wikidata) finds a specific
+A suggestion survives only if a lookup (the local index where there is one, OpenStreetMap, then
+Wikidata) finds a specific
 place, not just a city, whose name resembles the suggestion and which lies within the
 destination's search radius. The coordinates, address and name shown to the user are the
 lookup's, never the AI's.
@@ -13,11 +14,17 @@ from collections.abc import Callable, Iterable, Sequence
 from dataclasses import dataclass, field
 
 from tripwise_api.domain.geo import haversine_km
-from tripwise_api.integrations.geocoding import Geocoder, GeocodingError
+from tripwise_api.integrations.geocoding import Geocoder, GeocodingError, RegionalGeocoder
 from tripwise_api.planning.ai_models import AiStop
-from tripwise_api.planning.names import name_variants, names_match, normalise, similarity
+from tripwise_api.planning.names import (
+    closely_matches,
+    name_variants,
+    names_match,
+    normalise,
+    similarity,
+)
 from tripwise_api.schemas.places import PlaceKind, PlaceResult
-from tripwise_api.schemas.trip import Stop
+from tripwise_api.schemas.trip import PlaceSource, Stop
 from tripwise_api.schemas.trip_request import Destination, GeoPoint
 
 logger = logging.getLogger(__name__)
@@ -74,6 +81,15 @@ def _as_list(lookups: Lookups) -> list[Geocoder]:
     return list(lookups) if isinstance(lookups, Sequence) else [lookups]
 
 
+def _serving(lookups: Lookups, destination: Destination) -> list[Geocoder]:
+    """The lookups that know this destination."""
+    return [
+        lookup
+        for lookup in _as_list(lookups)
+        if not isinstance(lookup, RegionalGeocoder) or lookup.covers(destination.location)
+    ]
+
+
 def _in_area(result: PlaceResult, area: str) -> bool:
     """Whether the result's own address (not its name) mentions the AI's area hint."""
     address = result.place.address.removeprefix(result.place.name)
@@ -92,7 +108,8 @@ def _pick(
         if result.kind is not PlaceKind.POI:
             continue
         names = [result.place.name, *([result.also_known_as] if result.also_known_as else [])]
-        if not any(names_match(name, found) for name in wanted for found in names):
+        same = closely_matches if result.place.source is PlaceSource.OVERTURE else names_match
+        if not any(same(name, found) for name in wanted for found in names):
             continue
         if not close_enough(result):
             continue
@@ -128,7 +145,8 @@ async def _anchor(
     except GeocodingError:
         return None
     limit = search_radius_km(destination)
-    for result in results:
+    # A town or neighbourhood is a better anchor than a shop that shares its name.
+    for result in sorted(results, key=lambda r: r.kind is not PlaceKind.AREA):
         inside = haversine_km(result.place.location, destination.location) <= limit
         if inside and names_match(area, result.place.name):
             size = result.radius_km
@@ -140,8 +158,12 @@ async def _anchor(
 async def find_place(
     lookups: Lookups, name: str, area: str, destination: Destination, language: str
 ) -> PlaceResult | None:
-    geocoders = _as_list(lookups)
-    anchor = await _anchor(geocoders[0], area, destination, language) if geocoders else None
+    geocoders = _serving(lookups, destination)
+    # The local index may not know every neighbourhood, so map search gets a turn too.
+    regional = bool(geocoders) and isinstance(geocoders[0], RegionalGeocoder)
+    anchor = None
+    for geocoder in geocoders[: 2 if regional else 1]:
+        anchor = anchor or await _anchor(geocoder, area, destination, language)
     limit = search_radius_km(destination)
     center, radius = anchor or (destination.location, limit)
 

@@ -41,6 +41,20 @@ jobs:
           workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
           service_account: ${{ vars.GCP_DEPLOYER_SA }}
       - uses: google-github-actions/setup-gcloud@v3
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+      - id: month
+        run: echo "value=$(date +%Y-%m)" >> "$GITHUB_OUTPUT"
+      # Rebuilt monthly. If Overture is unreachable, last month's index is still deployed.
+      - id: places
+        uses: actions/cache@v6
+        with:
+          path: api/data/places-lb.sqlite
+          key: places-lb-${{ hashFiles('api/scripts/build_places.py') }}-${{ steps.month.outputs.value }}
+          restore-keys: places-lb-${{ hashFiles('api/scripts/build_places.py') }}-
+      - name: Build the local places index
+        if: steps.places.outputs.cache-hit != 'true'
+        working-directory: api
+        run: uv run --with duckdb==2.0.0 python scripts/build_places.py || test -f data/places-lb.sqlite
       - name: Build and push image
         run: |
           image="$REGION-docker.pkg.dev/$PROJECT_ID/tripwise/api:$SHA"

@@ -6,6 +6,7 @@ a generic query ("City History Museum") with some other real place ("Saida Histo
 so a result is only accepted when its name resembles the suggestion.
 """
 
+import math
 import re
 import unicodedata
 
@@ -63,6 +64,7 @@ GENERIC = frozenset(
         "castle",
         "fort",
         "fortress",
+        "citadel",
         "tower",
         "bridge",
         "gate",
@@ -209,6 +211,42 @@ def names_match(wanted: str, found: str) -> bool:
     if a in b or b in a:
         return True
     return bool(key & tokens(found))
+
+
+# A shop at a museum is not the museum.
+_SOLD_THERE = frozenset({"store", "shop"})
+
+
+def _same_word(wanted: str, found: str) -> bool:
+    """Equal, or a spelling that only adds an ending ("midan" and "midane")."""
+    extra = len(found) - len(wanted)
+    return wanted == found or (len(wanted) >= 4 and 0 < extra <= 2 and found.startswith(wanted))
+
+
+def closely_matches(wanted: str, found: str) -> bool:
+    """A stricter check for the local index, which returns every place sharing one word:
+    "Byblos Castle" must not be accepted as "Byblos Bakery", nor "Saint Paul Basilica" as
+    "Saint Paul Convent", nor a town as a hotel named after it."""
+    if normalise(wanted) == normalise(found):
+        return True
+    key = distinctive(wanted)
+    if not key or not _latin(wanted) or not _latin(found):
+        return False
+    own = distinctive(found)
+    covered = {word for word in key if any(_same_word(word, other) for other in own)}
+    extras = {other for other in own if not any(_same_word(word, other) for word in key)}
+    needed = len(key) if len(key) <= 2 else math.ceil(len(key) * 2 / 3)
+    if len(covered) < needed or (extras and len(covered) < len(key)):
+        return False
+    kind, found_kind = tokens(wanted) - key, tokens(found) - own
+    if kind and found_kind and not kind & found_kind:
+        return False
+    if (found_kind & _SOLD_THERE) - kind:
+        return False
+    if len(key) == 1:
+        return not extras
+    in_order = [_stem(word) for word in normalise(found).split() if _stem(word) in own]
+    return any(_same_word(word, in_order[0]) for word in key)
 
 
 def similarity(a: str, b: str) -> float:

@@ -46,6 +46,8 @@ class Settings(BaseSettings):
     photon_interval_seconds: float = 0.5
     osrm_interval_seconds: float = 1.0
     wikidata_interval_seconds: float = 0.3
+    # The local places index, built at deploy time. Without the file, only online search is used.
+    places_index_path: str = "data/places-lb.sqlite"
 
     # Per-user request limits per minute (in-process, per instance).
     rate_limit_per_minute: int = 120

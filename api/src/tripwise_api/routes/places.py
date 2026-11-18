@@ -11,9 +11,11 @@ from tripwise_api.dependencies import (
     search_limited,
 )
 from tripwise_api.integrations.geocoding import ATTRIBUTION, GeocodingError
+from tripwise_api.integrations.local_places import ATTRIBUTION as LOCAL_ATTRIBUTION
 from tripwise_api.routes.common import PLACES_UNAVAILABLE
 from tripwise_api.schemas.places import PlaceSearchResponse, TravelRequest, TravelResponse
 from tripwise_api.schemas.profile import Language
+from tripwise_api.schemas.trip import PlaceSource
 from tripwise_api.schemas.trip_request import GeoPoint
 
 router = APIRouter(tags=["places"], dependencies=[rate_limited])
@@ -37,7 +39,10 @@ async def search_places(
         results = await geocoder.search(q, near, 8, language.value)
     except GeocodingError as error:
         raise PLACES_UNAVAILABLE from error
-    return PlaceSearchResponse(results=results, attribution=ATTRIBUTION)
+    local = any(r.place.source is PlaceSource.OVERTURE for r in results)
+    return PlaceSearchResponse(
+        results=results, attribution=LOCAL_ATTRIBUTION if local else ATTRIBUTION
+    )
 
 
 @router.post("/travel")

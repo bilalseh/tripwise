@@ -27,7 +27,7 @@ test('plan a trip end to end and relax a day', async ({ page }) => {
   const dayOne = page.getByRole('region', { name: /Day 1/ });
   await expect(dayOne).toBeVisible({ timeout: 30_000 });
   await expect(
-    page.getByRole('note').filter({ hasText: 'could not be found on OpenStreetMap' }),
+    page.getByRole('note').filter({ hasText: 'could not be found in map data' }),
   ).toContainText('Invented Garden of Wonders 1');
   const before = await dayOne.getByRole('heading', { level: 3 }).count();
   expect(before).toBeGreaterThan(1);

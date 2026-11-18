@@ -20,6 +20,8 @@ FROM python:3.12-slim-trixie AS runtime
 RUN useradd --create-home --uid 10001 app
 WORKDIR /app
 COPY --from=builder --chown=app:app /app/.venv /app/.venv
+# The local places index, when the deploy built one (scripts/build_places.py).
+COPY --chown=app:app data ./data
 ENV PATH="/app/.venv/bin:$PATH" \
     PYTHONUNBUFFERED=1 \
     PORT=8080

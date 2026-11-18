@@ -134,7 +134,7 @@
       "flexible_other": "{{count}} days, dates not set",
       "people": "Family: {{adults}} adults, {{children}} children",
       "none": "None",
-      "aiNote": "The AI suggests places; every one is checked against OpenStreetMap before it is shown. Times and costs are estimates.",
+      "aiNote": "The AI suggests places; every one is checked against real map data before it is shown. Times and costs are estimates.",
       "invalid": "Some answers are missing. Go back and check each step.",
       "create": "Build my plan",
       "creating": "Saving",

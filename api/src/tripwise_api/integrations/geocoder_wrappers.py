@@ -6,14 +6,19 @@ import time
 from collections.abc import Callable, Sequence
 from datetime import timedelta
 
+from tripwise_api.domain.geo import haversine_km
 from tripwise_api.integrations.cache import Cache, cache_key
-from tripwise_api.integrations.geocoding import Geocoder, GeocodingError
+from tripwise_api.integrations.geocoding import Geocoder, GeocodingError, RegionalGeocoder
+from tripwise_api.planning.names import normalise
 from tripwise_api.schemas.places import PlaceResult
 from tripwise_api.schemas.trip_request import GeoPoint
 
 logger = logging.getLogger(__name__)
 
 CACHE_TTL = timedelta(days=30)
+# With local matches, online results further away than this are another place of the same name.
+LOCAL_RESULTS_KM = 150.0
+SAME_PLACE_KM = 0.5
 
 
 class CachedGeocoder:
@@ -65,3 +70,42 @@ class FallbackGeocoder:
                 logger.warning("geocoder %s failed: %s", geocoder.name, error)
                 self._resting_until[geocoder.name] = self._clock() + self._rest
         raise GeocodingError("every geocoder failed")
+
+
+class LocalFirstGeocoder:
+    """Place search for people: local matches first, then online results that add something."""
+
+    def __init__(self, local: RegionalGeocoder, online: Geocoder) -> None:
+        self._local = local
+        self._online = online
+        self.name = f"{local.name}+{online.name}"
+
+    async def search(
+        self, query: str, near: GeoPoint | None, limit: int, language: str
+    ) -> list[PlaceResult]:
+        if near is None or not self._local.covers(near):
+            return await self._online.search(query, near, limit, language)
+        local = await self._local.search(query, near, limit, language)
+        if len(local) >= limit:
+            return local
+        try:
+            online = await self._online.search(query, near, limit, language)
+        except GeocodingError:
+            if local:
+                return local
+            raise
+        if not local:
+            return online
+        extra = [r for r in online if _adds_to(local, r, near)]
+        return [*local, *extra][:limit]
+
+
+def _adds_to(local: Sequence[PlaceResult], result: PlaceResult, near: GeoPoint) -> bool:
+    if haversine_km(result.place.location, near) > LOCAL_RESULTS_KM:
+        return False
+    name = normalise(result.place.name)
+    return not any(
+        normalise(known.place.name) == name
+        and haversine_km(known.place.location, result.place.location) <= SAME_PLACE_KM
+        for known in local
+    )
