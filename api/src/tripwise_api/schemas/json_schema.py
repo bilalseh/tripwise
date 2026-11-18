@@ -25,7 +25,15 @@ def _inline(node: Any, defs: dict[str, Any], seen: tuple[str, ...]) -> Any:
         if name not in defs or name in seen:
             raise ValueError(f"cannot inline {ref}")
         return _inline(defs[name], defs, (*seen, name))
-    return {key: _inline(value, defs, seen) for key, value in node.items() if key != "title"}
+    inlined: dict[str, Any] = {}
+    for key, value in node.items():
+        if key == "title":  # the schema annotation; a field named "title" is under "properties"
+            continue
+        if key == "properties" and isinstance(value, dict):
+            inlined[key] = {name: _inline(field, defs, seen) for name, field in value.items()}
+        else:
+            inlined[key] = _inline(value, defs, seen)
+    return inlined
 
 
 def provider_schema(model: type[BaseModel]) -> dict[str, Any]:

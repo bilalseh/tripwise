@@ -40,9 +40,9 @@ class AiDay(AiModel):
     title: Annotated[str, StringConstraints(strip_whitespace=True, max_length=120)]
     stops: list[AiStop] = Field(min_length=1, max_length=10)
     rain_plan: list[AiStop] = Field(default_factory=list, max_length=5)
-    stay_estimate: Estimate = Field(description="One night's stay for the party")
-    food_estimate: Estimate = Field(description="Meals not covered by food stops")
-    transport_estimate: Estimate = Field(description="Local transport for the day")
+    stay_estimate: Estimate = Field(default=0, description="One night's stay for the party")
+    food_estimate: Estimate = Field(default=0, description="Meals not covered by food stops")
+    transport_estimate: Estimate = Field(default=0, description="Local transport for the day")
 
 
 class AiItinerary(AiModel):

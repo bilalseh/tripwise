@@ -64,6 +64,25 @@ async def test_moves_to_the_next_provider_when_repair_fails() -> None:
     assert result.provider == "b"
 
 
+async def test_retries_when_the_provider_refuses_its_own_reply() -> None:
+    refused = ProviderError("a", FailureKind.INVALID_REPLY, "HTTP 400", '{"text": "Hi"}')
+    provider = ScriptedProvider("a", [refused, VALID])
+
+    assert (await generate(AiClient([provider]))).stars == 4
+    assert '{"text": "Hi"}' in provider.requests[1].prompt
+
+
+async def test_moves_on_when_the_retry_is_refused_too() -> None:
+    refused = ProviderError("a", FailureKind.INVALID_REPLY, "HTTP 400", "{}")
+    first = ScriptedProvider("a", [refused, refused])
+    second = ScriptedProvider("b", [VALID])
+
+    result = await AiClient([first, second]).generate("greeting", Greeting, "s", "p")
+
+    assert result.provider == "b"
+    assert len(first.requests) == 2
+
+
 async def test_falls_back_when_the_first_provider_is_out_of_quota() -> None:
     quota = ProviderError("a", FailureKind.QUOTA, "HTTP 429")
     first = ScriptedProvider("a", [quota, VALID])

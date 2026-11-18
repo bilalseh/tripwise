@@ -11,9 +11,10 @@ from tests.stops import stop
 from tripwise_api.ai.client import AiClient
 from tripwise_api.ai.types import AiUnavailableError
 from tripwise_api.integrations.fake_geocoder import FakeGeocoder
-from tripwise_api.planning.ai_models import AiStop
+from tripwise_api.planning.ai_models import AiDay, AiItinerary, AiStop
 from tripwise_api.planning.generate import plan_days
 from tripwise_api.planning.grounding import CITY_KM, find_place
+from tripwise_api.schemas.json_schema import provider_schema
 from tripwise_api.schemas.places import PlaceKind, PlaceResult
 from tripwise_api.schemas.profile import Language
 from tripwise_api.schemas.trip import Day, Place, PlaceSource, Slot, StopCategory
@@ -225,11 +226,22 @@ def test_ai_stops_carry_no_coordinates_or_addresses() -> None:
 
 
 def test_providers_get_a_self_contained_schema() -> None:
-    from tripwise_api.planning.ai_models import AiItinerary
-    from tripwise_api.schemas.json_schema import provider_schema
-
     schema = json.dumps(provider_schema(AiItinerary))
 
     assert "$ref" not in schema
     assert '"durationMinutes"' in schema
     assert '"lat"' not in schema
+
+
+def test_a_field_named_title_survives_in_the_provider_schema() -> None:
+    day = provider_schema(AiItinerary)["properties"]["days"]["items"]
+
+    assert "title" in day["properties"]
+    assert set(day["required"]) <= set(day["properties"])
+    assert "title" not in day["properties"]["title"]  # annotations are still removed
+
+
+def test_a_day_without_cost_estimates_counts_them_as_zero() -> None:
+    day = AiDay.model_validate({"title": "Day", "stops": [_ai_stop("Castle")]})
+
+    assert (day.stay_estimate, day.food_estimate, day.transport_estimate) == (0, 0, 0)

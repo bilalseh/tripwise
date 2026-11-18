@@ -90,6 +90,10 @@ class AiClient:
                     raw = await provider.generate_json(request)
                 except ProviderError as error:
                     logger.warning("ai %s failed: %s", task, error)
+                    if error.kind is FailureKind.INVALID_REPLY:
+                        problem = "- The reply did not match the JSON schema."
+                        request = base.with_repair(error.reply, problem)
+                        continue
                     self._cool_down(error)
                     break
                 try:

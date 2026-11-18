@@ -27,6 +27,20 @@ def _reason(response: httpx.Response) -> str:
     return str(message)[:160]
 
 
+def _refused_reply(response: httpx.Response) -> str | None:
+    """The model's reply when Groq refused it for not matching the schema, else None."""
+    if response.status_code != httpx.codes.BAD_REQUEST:
+        return None
+    try:
+        body = response.json()
+    except ValueError:
+        return None
+    error = body.get("error") if isinstance(body, dict) else None
+    if not isinstance(error, dict) or error.get("code") != "json_validate_failed":
+        return None
+    return str(error.get("failed_generation") or "")
+
+
 async def _post_json(
     provider: str,
     client: httpx.AsyncClient,
@@ -41,9 +55,11 @@ async def _post_json(
     except httpx.HTTPError as exc:
         raise ProviderError(provider, FailureKind.TRANSIENT, type(exc).__name__) from exc
     if response.is_error:
-        raise ProviderError(
-            provider, _failure_kind(response), f"HTTP {response.status_code} {_reason(response)}"
-        )
+        detail = f"HTTP {response.status_code} {_reason(response)}"
+        refused = _refused_reply(response)
+        if refused is not None:
+            raise ProviderError(provider, FailureKind.INVALID_REPLY, detail, refused)
+        raise ProviderError(provider, _failure_kind(response), detail)
     return response.json()
 
 

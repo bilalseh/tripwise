@@ -75,6 +75,22 @@ async def test_classifies_http_failures(status: int, body: str, kind: FailureKin
     assert "k" not in str(caught.value).split(":")[-1]  # the key never ends up in messages
 
 
+async def test_groq_schema_failure_keeps_the_reply_for_the_retry() -> None:
+    error = {
+        "message": "Failed to validate JSON.",
+        "code": "json_validate_failed",
+        "failed_generation": '{"days": []}',
+    }
+    response = httpx.Response(400, json={"error": error})
+    async with client_returning(lambda _: response) as http:
+        with pytest.raises(ProviderError) as caught:
+            await GroqProvider(http, "k", "m").generate_json(REQUEST)
+
+    assert caught.value.kind is FailureKind.INVALID_REPLY
+    assert caught.value.reply == '{"days": []}'
+    assert '{"days": []}' not in str(caught.value)  # model output stays out of the logs
+
+
 async def test_a_timeout_is_transient() -> None:
     def handler(request: httpx.Request) -> httpx.Response:
         raise httpx.ReadTimeout("slow", request=request)

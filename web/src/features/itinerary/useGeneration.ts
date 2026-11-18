@@ -6,6 +6,7 @@ import { isApiError } from '../../lib/apiClient';
 import { keys, tripApi } from '../../lib/queries';
 
 const BATCH = 4;
+const RETRY_DELAY_MS = 1500;
 
 export type GenerationError = 'limit' | 'busy' | 'failed';
 
@@ -18,7 +19,16 @@ export interface Generation {
   start: (fromDay?: number) => void;
 }
 
-/** Generates the trip's missing days in batches of four, so each call fits the 60 s limit. */
+const wait = (ms: number) =>
+  new Promise((resolve) => {
+    window.setTimeout(resolve, ms);
+  });
+
+/**
+ * Generates the trip's missing days in batches of four, so each call fits the 60 s limit. When
+ * the AI cannot answer a batch, the same days are retried in smaller batches (4, 2, then 1),
+ * because models are far more reliable on shorter plans. Days already planned are kept.
+ */
 export function useGeneration(
   uid: string,
   trip: Trip | undefined,
@@ -40,12 +50,20 @@ export function useGeneration(
       void (async () => {
         let current = trip;
         let first = fromDay ?? current.days.length;
+        let batch = BATCH;
         try {
           while (first < total) {
             setDone(first);
-            current = await tripApi.generate(current.id, first, BATCH);
+            try {
+              current = await tripApi.generate(current.id, first, batch);
+            } catch (caught) {
+              if (!isApiError(caught, 503) || batch === 1) throw caught;
+              batch = Math.ceil(batch / 2);
+              await wait(RETRY_DELAY_MS);
+              continue;
+            }
             queryClient.setQueryData(keys.trip(uid, current.id), current);
-            first += BATCH;
+            first += batch;
           }
           setDone(total);
           onDone(current);

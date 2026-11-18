@@ -8,13 +8,15 @@ class FailureKind(StrEnum):
     RATE_LIMIT = "rate_limit"  # too many requests right now
     TRANSIENT = "transient"  # timeout, network or 5xx
     REJECTED = "rejected"  # the provider refused this request (4xx)
+    INVALID_REPLY = "invalid_reply"  # the provider refused its own model's reply (worth a retry)
 
 
 class ProviderError(Exception):
-    def __init__(self, provider: str, kind: FailureKind, detail: str) -> None:
+    def __init__(self, provider: str, kind: FailureKind, detail: str, reply: str = "") -> None:
         super().__init__(f"{provider}: {kind.value}: {detail}")
         self.provider = provider
         self.kind = kind
+        self.reply = reply  # kept out of the message, so model output never reaches the logs
 
 
 class AiUnavailableError(Exception):
