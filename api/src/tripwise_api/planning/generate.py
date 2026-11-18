@@ -95,13 +95,11 @@ async def plan_days(
 
     ai_days = result.value.days[:count]  # extra days from an eager model are ignored
 
-    # Ground every suggestion of the batch at once, then filter in a fixed order.
+    # Ground the batch's main stops before its rain options, which matter less if time runs out.
     destinations = [request.destination_for_day(first_day + i) for i in range(count)]
     wanted: list[tuple[AiStop, int]] = [
-        (stop, offset)
-        for offset, day in enumerate(ai_days)
-        for stop in (*day.stops, *day.rain_plan)
-    ]
+        (stop, offset) for offset, day in enumerate(ai_days) for stop in day.stops
+    ] + [(stop, offset) for offset, day in enumerate(ai_days) for stop in day.rain_plan]
     grounded = await ground_many(
         lookups,
         [(stop, request.destinations[destinations[offset]]) for stop, offset in wanted],

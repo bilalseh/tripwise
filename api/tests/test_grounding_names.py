@@ -316,3 +316,45 @@ async def test_places_not_checked_before_the_deadline_are_reported_apart() -> No
     assert keep_found([stop], grounded, log, set()) == [None]
     assert log.unchecked == ["Castle"]
     assert log.dropped == []
+
+
+async def test_places_are_checked_in_order_a_few_at_a_time() -> None:
+    class CountingGeocoder:
+        name = "counting"
+
+        def __init__(self) -> None:
+            self.active = 0
+            self.most = 0
+            self.queries: list[str] = []
+
+        async def search(
+            self, query: str, near: GeoPoint | None, limit: int, language: str
+        ) -> list[PlaceResult]:
+            self.active += 1
+            self.most = max(self.most, self.active)
+            self.queries.append(query.split(",")[0])
+            await asyncio.sleep(0.001)
+            self.active -= 1
+            return []
+
+    from tripwise_api.planning.ai_models import AiStop
+    from tripwise_api.planning.grounding import GROUND_AT_ONCE, ground_many
+
+    names = [f"Castle {letter}" for letter in "ABCDEFGH"]
+    stops = [
+        AiStop(
+            name=name,
+            category=StopCategory.SIGHT,
+            slot=Slot.MORNING,
+            reason="",
+            duration_minutes=60,
+            cost_estimate=0,
+        )
+        for name in names
+    ]
+    geocoder = CountingGeocoder()
+
+    await ground_many(geocoder, [(s, LISBON) for s in stops], "en", counter_ids())
+
+    assert geocoder.most <= GROUND_AT_ONCE
+    assert list(dict.fromkeys(geocoder.queries)) == names

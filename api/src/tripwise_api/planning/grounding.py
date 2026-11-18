@@ -31,6 +31,9 @@ MAX_KM = 400.0
 TOWN_KM = 8.0
 # Searches per suggestion and lookup, so invented names cannot burn through rate limits.
 QUERIES_PER_LOOKUP = 4
+# Map services answer about one search at a time, so starting every place at once would leave
+# them all half checked at the deadline. A few at a time finishes them in the order given.
+GROUND_AT_ONCE = 3
 
 NewId = Callable[[], str]
 Lookups = Geocoder | Sequence[Geocoder]
@@ -170,12 +173,17 @@ async def ground_many(
     deadline: float | None = None,
     clock: Callable[[], float] = time.monotonic,
 ) -> list[Grounded]:
-    """Ground suggestions concurrently (each lookup throttles itself to its usage policy).
-    The result lines up with the input: a Stop, None when not found, or UNCHECKED when the
-    deadline (a `clock()` time) passed first, so a slow map service never times the request out."""
-    tasks = [
-        asyncio.ensure_future(ground_stop(lookups, s, d, language, new_id)) for s, d in suggestions
-    ]
+    """Ground suggestions in order, a few at a time (each lookup throttles itself to its usage
+    policy). The result lines up with the input: a Stop, None when not found, or UNCHECKED when
+    the deadline (a `clock()` time) passed first, so a slow map service never times the request
+    out."""
+    slots = asyncio.Semaphore(GROUND_AT_ONCE)
+
+    async def ground_in_turn(suggestion: AiStop, destination: Destination) -> Stop | None:
+        async with slots:
+            return await ground_stop(lookups, suggestion, destination, language, new_id)
+
+    tasks = [asyncio.ensure_future(ground_in_turn(s, d)) for s, d in suggestions]
     if not tasks:
         return []
     timeout = None if deadline is None else max(0.0, deadline - clock())
