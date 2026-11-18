@@ -123,5 +123,6 @@ async def test_sends_a_self_contained_schema() -> None:
     await generate(AiClient([provider]))
 
     schema = provider.requests[0].schema
-    assert schema["properties"]["stars"] == {"maximum": 5, "minimum": 1, "type": "integer"}
+    # Limits stay out of the schema; Pydantic enforces them on the reply.
+    assert schema["properties"]["stars"] == {"type": "integer"}
     assert "$defs" not in json.dumps(schema)

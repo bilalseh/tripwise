@@ -80,7 +80,7 @@ async def plan_days(
     ]
 
     def check(itinerary: AiItinerary) -> list[str]:
-        if len(itinerary.days) != count:
+        if len(itinerary.days) < count:
             return [f"days: expected exactly {count} day(s), got {len(itinerary.days)}"]
         return []
 
@@ -93,11 +93,13 @@ async def plan_days(
         check=check,
     )
 
+    ai_days = result.value.days[:count]  # extra days from an eager model are ignored
+
     # Ground every suggestion of the batch at once, then filter in a fixed order.
     destinations = [request.destination_for_day(first_day + i) for i in range(count)]
     wanted: list[tuple[AiStop, int]] = [
         (stop, offset)
-        for offset, day in enumerate(result.value.days)
+        for offset, day in enumerate(ai_days)
         for stop in (*day.stops, *day.rain_plan)
     ]
     grounded = await ground_many(
@@ -115,7 +117,7 @@ async def plan_days(
     seen |= {place_identity(s) for k in locked for s in k}
     drafts: list[DraftDay] = []
     rain: list[list[Stop]] = []
-    for offset, day in enumerate(result.value.days):
+    for offset, day in enumerate(ai_days):
         stops = present(keep_found(day.stops, [by_suggestion[id(s)] for s in day.stops], log, seen))
         pinned = list(locked[offset]) if offset < len(locked) else []
         drafts.append(DraftDay(title=day.title, stops=[*pinned, *stops]))
@@ -157,7 +159,7 @@ async def plan_days(
         for offset, stops in enumerate(groups, start=start):
             kept, cut = finish_day(stops, request.pace, must_see_ids)
             trimmed.extend(s.place.name for s in cut)
-            ai_day = result.value.days[offset]
+            ai_day = ai_days[offset]
             days.append(
                 Day(
                     title=ai_day.title,

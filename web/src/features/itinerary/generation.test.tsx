@@ -6,6 +6,7 @@ import { fakeApi, FakeResponse } from '../../test/fakeApi';
 import { DEMO_USER, fakeSession } from '../../test/fakeSession';
 import { day, PROFILE, stop, trip } from '../../test/fixtures';
 import { renderRoute } from '../../test/renderRoute';
+import { retryDelays } from './generationRetry';
 
 interface GenerateBody {
   firstDay: number;
@@ -67,6 +68,8 @@ const batches = (api: ReturnType<typeof fakeApi>) =>
 describe('trip generation', () => {
   beforeEach(() => {
     fakeSession.setUser(DEMO_USER);
+    retryDelays.smallerBatch = 1;
+    retryDelays.rateLimit = 1;
   });
 
   it('retries a failed batch in smaller pieces and keeps the days already planned', async () => {
@@ -82,7 +85,7 @@ describe('trip generation', () => {
     ]);
   }, 10_000);
 
-  it('asks the user to try again only when even a single day fails', async () => {
+  it('waits once for a single day, then asks the user to try again', async () => {
     const api = server((body) => body.firstDay === 4);
     renderRoute('/trips/demo-lisbon');
 
@@ -94,6 +97,7 @@ describe('trip generation', () => {
         [0, 4],
         [4, 4],
         [4, 2],
+        [4, 1],
         [4, 1],
       ]);
     });

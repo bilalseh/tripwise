@@ -8,7 +8,7 @@ import type { Generation } from './useGeneration';
 
 export function GenerationView({ generation }: { generation: Generation }) {
   const { t } = useTranslation();
-  const { running, done, total, error, resetsAt } = generation;
+  const { running, waiting, done, total, error, resetsAt } = generation;
   const percent = total ? Math.round((done / total) * 100) : 0;
 
   if (error) {
@@ -48,6 +48,7 @@ export function GenerationView({ generation }: { generation: Generation }) {
         {running && <Spinner className="size-8 text-brand-600" />}
         <p className="text-lg font-semibold">{t('generate.title')}</p>
         <p className="text-sm text-slate-600">{t('generate.progress', { done, total })}</p>
+        {waiting && <p className="text-sm text-amber-800">{t('generate.waiting')}</p>}
       </div>
       <div
         role="progressbar"

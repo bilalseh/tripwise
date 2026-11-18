@@ -241,6 +241,25 @@ def test_a_field_named_title_survives_in_the_provider_schema() -> None:
     assert "title" not in day["properties"]["title"]  # annotations are still removed
 
 
+def test_providers_get_no_limits_that_make_the_schema_too_complex() -> None:
+    schema = json.dumps(provider_schema(AiItinerary))
+
+    for keyword in ("maxLength", "minLength", "maxItems", "minItems", "minimum", "maximum"):
+        assert f'"{keyword}"' not in schema
+
+
+async def test_extra_days_from_the_model_are_ignored() -> None:
+    reply = json.dumps({"days": [_ai_day([_ai_stop("Castle")]), _ai_day([_ai_stop("Garden")])]})
+    provider = ScriptedProvider("groq", [reply])
+
+    batch = await plan_days(
+        AiClient([provider]), FakeGeocoder(), trip_request(), 0, 1, [], Language.EN, counter_ids()
+    )
+
+    assert len(batch.days) == 1
+    assert len(provider.requests) == 1
+
+
 def test_a_day_without_cost_estimates_counts_them_as_zero() -> None:
     day = AiDay.model_validate({"title": "Day", "stops": [_ai_stop("Castle")]})
 

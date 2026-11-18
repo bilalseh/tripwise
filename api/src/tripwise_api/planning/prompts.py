@@ -11,7 +11,7 @@ from tripwise_api.schemas.profile import Language
 from tripwise_api.schemas.trip import Day
 from tripwise_api.schemas.trip_request import TripRequest
 
-PROMPT_VERSION = "v1"
+PROMPT_VERSION = "v2"
 CONTEXT_MARKER = "CONTEXT_JSON:"
 LANGUAGE_NAMES = {Language.EN: "English", Language.AR: "Modern Standard Arabic"}
 
@@ -22,9 +22,13 @@ Each stop is exactly one place under its usual short name: never join places wit
 Never give addresses, coordinates, opening hours or prices as facts: costs and durations are
 rough estimates for planning. Respect the traveller's pace, budget, mobility and dietary needs.
 Write titles and reasons in {language}; keep place names in their usual local or English form.
+A stop's area is its neighbourhood or town. For each day, stayEstimate is one night's stay for
+the party, foodEstimate covers meals that are not food stops, and transportEstimate is local
+transport. Stop costs are for the whole party, 0 if free.
 Reply with JSON that matches the schema exactly."""
 
 GENERATE = """Plan {count} day(s) of a trip: trip days {first} to {last} (numbered from 1).
+The days array must have exactly {count} item(s), one for each listed day, in order.
 For each day give {target} stops (never more than {max_stops}), grouped by time of day
 (morning, afternoon, evening), each with a one-sentence reason, a duration estimate and a cost
 estimate in {currency} for the whole party. Add 1 or 2 indoor stops as rain_plan for each day.

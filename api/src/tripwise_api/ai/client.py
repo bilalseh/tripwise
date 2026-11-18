@@ -114,11 +114,11 @@ class AiClient:
                 problems = check(value) if check else []
                 if problems:
                     logger.warning(
-                        "ai %s from %s did not fit (attempt %d): %d problem(s)",
+                        "ai %s from %s did not fit (attempt %d): %s",
                         task,
                         provider.name,
                         attempt + 1,
-                        len(problems),
+                        "; ".join(problems)[:300],
                     )
                     request = base.with_repair(raw, "\n".join(f"- {p}" for p in problems))
                     continue
