@@ -72,16 +72,65 @@ describe('trip generation', () => {
     retryDelays.rateLimit = 1;
   });
 
-  it('retries a failed batch in smaller pieces and keeps the days already planned', async () => {
-    const api = server((body) => body.firstDay === 4 && body.dayCount === 4);
+  it('plans long trips two days at a time', async () => {
+    const api = server(() => false);
     renderRoute('/trips/demo-lisbon');
 
     expect(await screen.findByRole('region', { name: /Day 1/ }, { timeout: 8000 })).toBeVisible();
     expect(batches(api)).toEqual([
-      [0, 4],
-      [4, 4],
+      [0, 2],
+      [2, 2],
       [4, 2],
       [6, 2],
+    ]);
+  }, 10_000);
+
+  it('retries a failed batch one day at a time and keeps the days already planned', async () => {
+    const api = server((body) => body.firstDay === 4 && body.dayCount === 2);
+    renderRoute('/trips/demo-lisbon');
+
+    expect(await screen.findByRole('region', { name: /Day 1/ }, { timeout: 8000 })).toBeVisible();
+    expect(batches(api)).toEqual([
+      [0, 2],
+      [2, 2],
+      [4, 2],
+      [4, 1],
+      [5, 2],
+      [7, 2],
+    ]);
+  }, 10_000);
+
+  it('retries when an earlier try of the same days saved first', async () => {
+    let stale = false;
+    const api = server((body) => {
+      if (body.firstDay !== 2 || stale) return false;
+      stale = true;
+      throw new FakeResponse(409, { detail: { code: 'stale_version' } });
+    });
+    renderRoute('/trips/demo-lisbon');
+
+    expect(await screen.findByRole('region', { name: /Day 1/ }, { timeout: 8000 })).toBeVisible();
+    expect(batches(api).slice(0, 3)).toEqual([
+      [0, 2],
+      [2, 2],
+      [2, 1],
+    ]);
+  }, 10_000);
+
+  it('survives a dropped connection', async () => {
+    let dropped = false;
+    const api = server((body) => {
+      if (body.firstDay !== 2 || dropped) return false;
+      dropped = true;
+      throw new TypeError('Failed to fetch');
+    });
+    renderRoute('/trips/demo-lisbon');
+
+    expect(await screen.findByRole('region', { name: /Day 1/ }, { timeout: 8000 })).toBeVisible();
+    expect(batches(api).slice(0, 3)).toEqual([
+      [0, 2],
+      [2, 2],
+      [2, 1],
     ]);
   }, 10_000);
 
@@ -94,8 +143,8 @@ describe('trip generation', () => {
     ).toBeVisible();
     await waitFor(() => {
       expect(batches(api)).toEqual([
-        [0, 4],
-        [4, 4],
+        [0, 2],
+        [2, 2],
         [4, 2],
         [4, 1],
         [4, 1],

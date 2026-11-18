@@ -4,9 +4,9 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { isApiError } from '../../lib/apiClient';
 import { keys, tripApi } from '../../lib/queries';
-import { retryDelays } from './generationRetry';
+import { isRetryable, retryDelays } from './generationRetry';
 
-const BATCH = 4;
+const BATCH = 2;
 
 export type GenerationError = 'limit' | 'busy' | 'failed';
 
@@ -27,10 +27,10 @@ const wait = (ms: number) =>
   });
 
 /**
- * Generates the trip's missing days in batches of four, so each call fits the 60 s limit. When
- * the AI cannot answer a batch, the same days are retried in smaller batches (4, 2, then 1),
- * because models are far more reliable on shorter plans. A single day that still fails gets one
- * more try after a minute, when free per-minute limits have passed. Planned days are kept.
+ * Generates the trip's missing days two at a time, so each call fits the 60 s limit and models
+ * stay reliable. A batch that fails (busy AI, gateway timeout, dropped connection) is retried as
+ * a single day. A single day that still fails gets one more try after a minute, when free
+ * per-minute limits have passed. Days already planned are kept.
  */
 export function useGeneration(
   uid: string,
@@ -62,7 +62,7 @@ export function useGeneration(
             try {
               current = await tripApi.generate(current.id, first, batch);
             } catch (caught) {
-              if (!isApiError(caught, 503)) throw caught;
+              if (!isRetryable(caught)) throw caught;
               if (batch > 1) {
                 batch = Math.ceil(batch / 2);
                 await wait(retryDelays.smallerBatch);
@@ -78,6 +78,7 @@ export function useGeneration(
             patient = true;
             queryClient.setQueryData(keys.trip(uid, current.id), current);
             first += batch;
+            batch = BATCH;
           }
           setDone(total);
           onDone(current);

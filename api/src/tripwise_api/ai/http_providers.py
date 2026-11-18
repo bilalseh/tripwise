@@ -82,6 +82,8 @@ class GeminiProvider:
                 "responseMimeType": "application/json",
                 "responseJsonSchema": request.schema,
                 "temperature": request.temperature,
+                # Planning does not need extended thinking, and it made replies time out.
+                "thinkingConfig": {"thinkingBudget": 0},
             },
         }
         data = await _post_json(
